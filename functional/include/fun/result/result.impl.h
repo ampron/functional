@@ -6,9 +6,8 @@
 //! @copyright MIT LIcense
 //!
 
-#include "result.tpp"
-
-#include "option.ipp"
+#include <fun/result/result.declare.h>
+#include <fun/option/option.impl.h>
 
 namespace fun {
 

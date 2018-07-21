@@ -6,7 +6,7 @@
 //! @copyright MIT LIcense
 //!
 
-#include "option.tpp"
+#include <fun/option/option.declare.h>
 
 namespace fun {
 
@@ -17,8 +17,8 @@ auto some() -> Option<Unit> { return some(Unit{}); }
 
 //------------------------------------------------------------------------------
 template<typename T>
-auto some(T x) -> Option<typename std::remove_reference<T>::type> {
-  return Option<T>(std::move(x));
+auto some(T&& x) -> Option<typename std::remove_reference<T>::type> {
+  return Option<T>(std::forward<T>(x));
 }
 
 //------------------------------------------------------------------------------

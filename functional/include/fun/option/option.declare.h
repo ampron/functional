@@ -13,7 +13,7 @@
 #include <cassert>
 #include <ostream>
 
-#include "option_inner.h"
+#include <fun/option/option_inner.h>
 
 namespace fun {
 
@@ -22,7 +22,7 @@ template <typename T> class Option;
 auto some() -> Option<Unit>;
 
 template<typename T>
-auto some(T x) -> Option<std::remove_reference_t<T>>;
+auto some(T&& x) -> Option<std::remove_reference_t<T>>;
 
 template<typename T>
 auto some(T* ptr) -> Option<T&>;

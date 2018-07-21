@@ -8,13 +8,13 @@
 
 #include <ostream>
 
-#include "type_support.h"
-#include "option.tpp"
+#include <fun/type_support.h>
+#include <fun/option/option.declare.h>
 
 namespace fun {
 
 //------------------------------------------------------------------------------
-template <class T, class E> struct Result;
+template <class T, class E> class Result;
 
 template <class T> struct MakeOkResult{ T val; };
 template <class E> struct MakeErrResult{ E val; };
@@ -67,12 +67,14 @@ auto make_err(Args&& ...args) -> MakeResultArgs<ErrTag, Args&&...>
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-struct Result {
+class Result {
+public:
   using self_t = Result<T, E>;
   
   using ok_value_t = std::remove_reference_t<T>;
   using err_value_t = std::remove_reference_t<E>;
 
+private:
   enum { Ok, Err } _variant;
   union {
     Sized<T> _ok;
@@ -85,6 +87,7 @@ struct Result {
   // ** only call on `Err` variant, otherwise undefined behavior **
   E dump_err();
 
+public:
   ~Result();
 
   Result(self_t&&);

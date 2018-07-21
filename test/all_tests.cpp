@@ -1,13 +1,11 @@
 
-// #include "Result.h"
-// #include "Option.tmpl.h"
-#include "fun/result.h"
-
-#include "testing.h"
-
 #include <memory>
 #include <iostream>
 #include <vector>
+
+#include <fun/result.h>
+
+#include "testing.h"
 
 void do_nothing() {}
 
@@ -47,6 +45,19 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
   const auto x = 3;
   const fun::Option<const int&> op(x);
   test.assert_true(op.is_some());
+}},
+    
+//------------------------------------------------------------------------------
+{"option_some_function", [](const test::Tester& test) {
+    const auto x = fun::some(3);
+    test.assert_true(x.is_some());
+}},
+    
+//------------------------------------------------------------------------------
+{"option_some_ref_function", [](const test::Tester& test) {
+    const auto x = 3;
+    const auto op = fun::some_ref(x);
+    test.assert_true(op.is_some());
 }},
 
 //------------------------------------------------------------------------------
