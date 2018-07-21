@@ -33,4 +33,4 @@
 
 # Specific to this project
 local/
-build/
+build*/
