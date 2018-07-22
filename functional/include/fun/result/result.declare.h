@@ -127,6 +127,15 @@ public:
 
   bool operator==(const self_t& other) const;
   bool operator!=(const self_t& other) const;
+  
+  bool operator==(const MakeOkResult<T>& other) const {
+    if (is_ok()) { return _ok._val == other.val; }
+    else         { return false; }
+  }
+  bool operator==(const MakeErrResult<E>& other) const {
+    if (is_ok()) { return false; }
+    else         { return _err._val == other.val; }
+  }
 
   T unwrap();
   E unwrap_err();
@@ -177,6 +186,16 @@ auto ok_val(T&& val) -> MakeOkResult<T&&>
   return { std::forward<T>(val) };
 }
 
+}
+
+template <class T, class E>
+bool operator==(const fun::MakeOkResult<T>& a, const fun::Result<T, E>& b) {
+  return b == a;
+}
+
+template <class T, class E>
+bool operator==(const fun::MakeErrResult<E>& a, const fun::Result<T, E>& b) {
+  return b == a;
 }
 
 template <class T, class E>

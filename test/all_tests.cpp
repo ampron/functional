@@ -3,7 +3,9 @@
 #include <iostream>
 #include <vector>
 
+#include <fun/pipe.h>
 #include <fun/result.h>
+#include <gtest/gtest.h>
 
 #include "testing.h"
 
@@ -19,98 +21,89 @@ auto example_unique_one() -> std::unique_ptr<int> {
   return std::unique_ptr<int>(new int(1));
 }
 
-//==============================================================================
-const std::unordered_map<const char*, test::UnitTest> tests = {
-
 //------------------------------------------------------------------------------
-{ "option_none_constructor", [](const test::Tester& test) {
+TEST(OptionTest, none_constructor) {
   fun::Option<int> op;
-  test.assert_true(op.is_none());
-}},
+  ASSERT_TRUE(op.is_none());
+}
 
 //------------------------------------------------------------------------------
-{"option_none_constructor", [](const test::Tester& test) {
-  fun::Option<int> op;
-  test.assert_true(op.is_none());
-}},
-
-//------------------------------------------------------------------------------
-{"option_some_constructor", [](const test::Tester& test) {
+TEST(OptionTest, some_constructor) {
   const fun::Option<int> op(3);
-  test.assert_true(op.is_some());
-}},
+  ASSERT_TRUE(op.is_some());
+}
 
 //------------------------------------------------------------------------------
-{"option_some_reference_constructor", [](const test::Tester& test) {
+TEST(OptionTest, some_reference_constructor) {
   const auto x = 3;
   const fun::Option<const int&> op(x);
-  test.assert_true(op.is_some());
-}},
-    
+  ASSERT_TRUE(op.is_some());
+}
+
 //------------------------------------------------------------------------------
-{"option_some_function", [](const test::Tester& test) {
+TEST(OptionTest, some_function) {
     const auto x = fun::some(3);
-    test.assert_true(x.is_some());
-}},
-    
+    ASSERT_TRUE(x.is_some());
+}
+
 //------------------------------------------------------------------------------
-{"option_some_ref_function", [](const test::Tester& test) {
+TEST(OptionTest, some_ref_function) {
     const auto x = 3;
     const auto op = fun::some_ref(x);
-    test.assert_true(op.is_some());
-}},
+    ASSERT_TRUE(op.is_some());
+}
 
 //------------------------------------------------------------------------------
-{"option_forwarding_constructor", [](const test::Tester& test) {
+TEST(OptionTest, forwarding_constructor) {
   const fun::Option<std::vector<int>> op = fun::make_some(3, 0);
-  test.assert_true(op.is_some());
-}},
+  ASSERT_TRUE(op.is_some());
+}
 
 //------------------------------------------------------------------------------
-{"option_emplace", [](const test::Tester& test) {
+TEST(OptionTest, emplace) {
   auto op = fun::Option<std::vector<int>>();
-  test.assert_true(op.is_none());
+  ASSERT_TRUE(op.is_none());
 
   op.emplace(5, 0);
-  test.assert_true(op.is_some());
-}},
+  ASSERT_TRUE(op.is_some());
+}
 
 //------------------------------------------------------------------------------
-{"option_equality_operator", [](const test::Tester& test) {
+TEST(OptionTest, equality_operator) {
   const auto a = fun::some(2.0);
   const auto b = fun::some(2.0);
   const auto c = fun::some(1.0);
 
-  test.assert_true(a == b);
-  test.assert_true(b != c);
-}},
+  ASSERT_TRUE(a == b);
+  ASSERT_TRUE(b != c);
+}
 
 //------------------------------------------------------------------------------
-{"option_as_ref", [](const test::Tester& test) {
+TEST(OptionTest, as_ref) {
   auto x = fun::some(5);
   const auto x_ref = x.as_ref();
-  test.assert_true(x_ref.is_some());
-  test.assert_true(x_ref.clone().unwrap() == 5);
-}},
+  ASSERT_TRUE(x_ref.is_some());
+  ASSERT_TRUE(x_ref.clone().unwrap() == 5);
+}
 
 //------------------------------------------------------------------------------
-{"option_as_const_ref", [](const test::Tester& test) {
+TEST(OptionTest, as_const_ref) {
   const auto x = fun::some(5);
   const auto x_ref = x.as_ref();
-  test.assert_true(x_ref);
-  test.assert_true(x_ref.clone().unwrap() == 5);
-}},
+  ASSERT_TRUE(x_ref);
+  ASSERT_TRUE(x_ref.clone().unwrap() == 5);
+}
 
 //------------------------------------------------------------------------------
-{"option_iterators", [](const test::Tester& test) {
+TEST(OptionTest, iterators) {
   {
     auto op = fun::Option<double>(1.5);
     size_t n = 0;
     for (const auto& x : op) {
       ++n;
-      test.expect_eq(x, 1.5);
+      EXPECT_EQ(x, 1.5);
     }
-    test.expect_eq(n, size_t(1));
+    EXPECT_EQ(n, size_t(1));
   }
   {
     auto op = fun::Option<double>();
@@ -118,31 +111,31 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
     for (const auto& x : op) {
       ++n;
     }
-    test.expect_eq(n, size_t(0));
+    EXPECT_EQ(n, size_t(0));
   }
-}},
+}
 
 //------------------------------------------------------------------------------
-{"option_implicit_bool_conversion", [](const test::Tester& test) {
+TEST(OptionTest, implicit_bool_conversion) {
   {
     size_t n = 0;
     if (auto op = fun::Option<double>(1.5)) {
       ++n;
-      test.expect_eq(op.clone().unwrap(), 1.5);
+      EXPECT_EQ(op.clone().unwrap(), 1.5);
     }
-    test.expect_eq(n, size_t(1));
+    EXPECT_EQ(n, size_t(1));
   }
   {
     size_t n = 0;
     if (auto op = fun::Option<double>()) {
       ++n;
     }
-    test.expect_eq(n, size_t(0));
+    EXPECT_EQ(n, size_t(0));
   }
-}},
+}
 
 //------------------------------------------------------------------------------
-{"option_match", [](const test::Tester& test) {
+TEST(OptionTest, match) {
   using std::vector;
 
   const auto y = 10.0;
@@ -156,7 +149,7 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
         return vector<double>();
       }
     );
-    test.assert_eq(xs.size(), example_vector().size() + 1);
+    ASSERT_EQ(xs.size(), example_vector().size() + 1);
   }
   {
     const auto op = fun::some(example_vector());
@@ -164,36 +157,36 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
       [&](const vector<double>& vec) { return vec.size() + y; },
       [&]() { return -y; }
     );
-    test.assert_eq(x, example_vector().size() + y);
+    ASSERT_EQ(x, example_vector().size() + y);
   }
-}},
+}
 
 //------------------------------------------------------------------------------
-{"option_match_void", [](const test::Tester& test) {
+TEST(OptionTest, match_void) {
   using std::vector;
 
   fun::some(example_vector()).match(
     [&](vector<double> vec) {
-      test.assert_eq(vec.size(), example_vector().size());
+      ASSERT_EQ(vec.size(), example_vector().size());
     },
     [&]() {
-      test.assert_true(false);
+      ASSERT_TRUE(false);
     }
   );
 
   const auto op = fun::some(example_vector());
   op.as_ref().match(
     [&](const vector<double>& vec) {
-      test.assert_eq(vec.size(), size_t(6));
+      ASSERT_EQ(vec.size(), size_t(6));
     },
     [&]() {
-      test.assert_true(false);
+      ASSERT_TRUE(false);
     }
   );
-}},
+}
 
 //------------------------------------------------------------------------------
-{"option_map", [](const test::Tester& test) {
+TEST(OptionTest, map) {
   using std::vector;
 
   const auto xs = fun::some(example_vector())
@@ -205,11 +198,11 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
     )
     .unwrap();
 
-  test.assert_eq(xs.size(), example_vector().size() + 1);
-}},
+  ASSERT_EQ(xs.size(), example_vector().size() + 1);
+}
 
 //------------------------------------------------------------------------------
-{"option_map_void", [](const test::Tester& test) {
+TEST(OptionTest, map_void) {
   using std::vector;
 
   auto xs = example_vector();
@@ -217,17 +210,17 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
     [](vector<double>& vec) -> void { vec.push_back(7.0); }
   );
 
-  test.assert_eq(xs.size(), example_vector().size() + 1);
-}},
+  ASSERT_EQ(xs.size(), example_vector().size() + 1);
+}
 
 //------------------------------------------------------------------------------
-{"option_unvoid", [](const test::Tester& test) {
-  const auto _ = fun::unvoid_call(do_nothing);
-  // const UnvoidCall<true, decltype(do_nothing)>::Output foo;
-}},
+TEST(OptionTest, unvoid) {
+  const auto unit = fun::unvoid_call(do_nothing);
+  ASSERT_EQ(unit, fun::Unit{});
+}
 
 //------------------------------------------------------------------------------
-{"option_map_or", [](const test::Tester& test) {
+TEST(OptionTest, map_or) {
   using std::vector;
 
   const auto xs = fun::some(example_vector()).map_or(vector<double>(),
@@ -237,11 +230,11 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
     }
   );
 
-  test.assert_eq(xs.size(), example_vector().size() + 1);
-}},
+  ASSERT_EQ(xs.size(), example_vector().size() + 1);
+}
 
 //------------------------------------------------------------------------------
-{"option_bind", [](const test::Tester& test) {
+TEST(OptionTest, bind) {
   using std::vector;
 
   auto xs = example_vector();
@@ -252,12 +245,12 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
     }
   );
 
-  test.assert_eq(xs.size(), example_vector().size() + 1);
-  test.assert_eq(last.clone().unwrap(), 7.);
-}},
+  ASSERT_EQ(xs.size(), example_vector().size() + 1);
+  ASSERT_EQ(last.clone().unwrap(), 7.);
+}
 
 //------------------------------------------------------------------------------
-{"option_iteration", [](const test::Tester& test) {
+TEST(OptionTest, iteration) {
   using std::vector;
   
   auto xs = example_vector();
@@ -266,7 +259,7 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
       xs.push_back(7.0);
   }
 
-  test.assert_eq(xs.size(), example_vector().size() + 1);
+  ASSERT_EQ(xs.size(), example_vector().size() + 1);
   
   auto maybe_ys = fun::some(example_vector());
   for (auto& ys : maybe_ys) {
@@ -275,55 +268,55 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
   const auto p_ys = maybe_ys.as_ptr();
   const auto n_ys = p_ys ? p_ys->size() : 0;
 
-  test.assert_eq(n_ys, example_vector().size() + 1);
-}},
+  ASSERT_EQ(n_ys, example_vector().size() + 1);
+}
 
 //------------------------------------------------------------------------------
-{"option_unwrap_or", [](const test::Tester& test) {
+TEST(OptionTest, unwrap_or) {
   const auto x = fun::some(2).unwrap_or(0);
-  test.assert_true(x == 2);
-}},
+  ASSERT_TRUE(x == 2);
+}
 
 //------------------------------------------------------------------------------
-{"option_equality", [](const test::Tester& test) {
+TEST(OptionTest, equality) {
   const auto x = fun::some(2);
   const auto y = fun::some(2);
   const auto z = fun::Option<int>();
-  test.expect_eq(x, y);
-  test.expect_neq(z, x);
-}},
+  EXPECT_EQ(x, y);
+  EXPECT_NE(z, x);
+}
 
 //------------------------------------------------------------------------------
-{"option_expect", [](const test::Tester& test) {
+TEST(OptionTest, expect) {
   const auto x = fun::Option<int>();
-  test.assert_throw([&](){ int y = x.clone().expect("error message"); });
-}},
+  ASSERT_THROW(x.clone().expect("error message"), std::runtime_error);
+}
 
 //------------------------------------------------------------------------------
-{"result_construction", [](const test::Tester& test) {
+TEST(ResultTest, construction) {
   const auto x = fun::return_ok<std::string>(3);
-  test.assert_eq(x.clone().unwrap(), 3);
+  ASSERT_EQ(x.clone().unwrap(), 3);
   const auto y = fun::return_err<int>(std::string("fail"));
-  test.assert_eq(y.clone().unwrap_err().size(), size_t(4));
+  ASSERT_EQ(y.clone().unwrap_err().size(), size_t(4));
   auto z = fun::Result<std::vector<double>, std::string>(
     fun::OkTag{}, fun::ForwardArgs{}, 5, 2.0
   );
-  test.assert_eq(std::move(z).unwrap().size(), size_t(5));
+  ASSERT_EQ(std::move(z).unwrap().size(), size_t(5));
   const auto xs = example_vector();
   const auto xs_ref = fun::return_ok_ref<std::string>(xs);
-  test.assert_eq(xs_ref.clone().unwrap().size(), xs.size());
+  ASSERT_EQ(xs_ref.clone().unwrap().size(), xs.size());
   const auto xs_err_ref = fun::return_err_ref<std::string>(xs);
-  test.assert_eq(xs_err_ref.clone().unwrap_err().size(), xs.size());
-}},
+  ASSERT_EQ(xs_err_ref.clone().unwrap_err().size(), xs.size());
+}
 
 //------------------------------------------------------------------------------
-{"result_unwrap", [](const test::Tester& test) {
+TEST(ResultTest, unwrap) {
   auto p = fun::return_ok<std::string>(example_unique_one()).unwrap();
-  test.assert_true(p.get());
-}},
+  ASSERT_TRUE(p.get());
+}
 
 //------------------------------------------------------------------------------
-{"result_equality", [](const test::Tester& test) {
+TEST(ResultTest, equality) {
   using std::string;
   
   const auto a = fun::return_ok<string>(5.0);
@@ -332,42 +325,38 @@ const std::unordered_map<const char*, test::UnitTest> tests = {
   const auto d = fun::return_err<double>(string("not a number"));
   const auto e = fun::return_err<double>(string("not a number"));
   
-  test.assert_eq(a, b);
-  test.assert_neq(a, c);
-  test.assert_neq(a, d);
-  test.assert_eq(d, e);
-}},
+  ASSERT_EQ(a, b);
+  ASSERT_NE(a, c);
+  ASSERT_NE(a, d);
+  ASSERT_EQ(d, e);
+}
 
 //------------------------------------------------------------------------------
-{"result_into_option", [](const test::Tester& test) {
+TEST(ResultTest, into_option) {
   using std::string;
   using std::unique_ptr;
   
   const auto a = fun::return_ok<string>(example_unique_one()).ok();
   const auto n = a.as_ref().map([](const unique_ptr<int>& p) -> int { return *p; })
                   .unwrap_or(0);
-  test.assert_eq(n, 1);
+  ASSERT_EQ(n, 1);
   
   const auto b = fun::return_err<string>(example_unique_one()).err();
   const auto m = b.as_ref().map([](const unique_ptr<int>& p) -> int { return *p; })
                   .unwrap_or(0);
-  test.assert_eq(m, 1);
-}}
-
-}; // end of test map
+  ASSERT_EQ(m, 1);
+}
 
 //------------------------------------------------------------------------------
+TEST(ResultTest, variant_type_equality) {
+  const auto x = fun::return_ok<std::string>(3);
+  ASSERT_TRUE(x == fun::return_ok(3));
+  ASSERT_TRUE(fun::return_ok(3) == x);
+  ASSERT_TRUE(x == fun::return_err(std::string()));
+  ASSERT_TRUE(fun::return_err(std::string()) == x);
+}
 
-namespace fun {
-
-template <class T>
-auto pipe(T x) -> T { return x; }
-
-template <class T, class F, class ...Args>
-auto pipe(T x, F f, Args&& ...args) { return pipe(f(std::move(x)), std::forward<Args>(args)...); }
-
-} // end namespace fun
-
+//------------------------------------------------------------------------------
 class Foo {
 public:
   Foo() = delete;
@@ -417,17 +406,19 @@ auto good_int(const int n) -> fun::Result<Foo, int>
     return fun::make_ok(n, x);
   }
   else {
-    return fun::return_err(n);
+    // return fun::return_err(n);
+    return fun::make_err(n);
   }
 }
 
 auto even_baby(const int n) -> fun::Option<CryBaby> {
-  if (n % 2 == 0) { return fun::make_some<CryBaby>(CryBaby()); }
+  if (n % 2 == 0) { return fun::make_some(); }
   else            { return {}; }
 }
 
 int main(int nargs, char** vargs) {
-  test::run_tests(tests, std::cout);
+  ::testing::InitGoogleTest(&nargs, vargs);
+  const auto gtest_return_code = RUN_ALL_TESTS();
   
   const auto safe_cstr = [](std::string s) -> fun::Option<std::string> {
     if (s.empty()) { return {}; }
@@ -437,11 +428,18 @@ int main(int nargs, char** vargs) {
     if (s.size() < 3) { return {}; }
     else              { return fun::some(std::move(s)); }
   };
-  const auto y = pipe( fun::some(std::string("345"))
-                     , fun::bind_op(safe_cstr)
-                     , fun::bind_op(small_str)
-                     ).unwrap_or(std::string("failure"));
+  const auto y = fun::pipe( fun::some(std::string("345"))
+                          , fun::bind_op(safe_cstr)
+                          , fun::bind_op(small_str)
+                          ).unwrap_or(std::string("failure"));
   std::cout << y << std::endl;
+  
+  // const auto y_ = fun::compose(
+  //   fun::bind_op(safe_cstr),
+  //   fun::bind_op(small_str),
+  //   [](auto&& op) { return std::forward<decltype(op)>(op).unwrap_or(std::string("failure")); }
+  // );
+  // std::cout << y_(fun::some(std::string("345*"))) << std::endl;
   
   const auto x = fun::make_ok(y, 6., "hal:");
   const auto baby = even_baby(nargs * 2.);
@@ -450,4 +448,6 @@ int main(int nargs, char** vargs) {
   // baby2.as_ref().map([](const auto& b) { b.cry(); });
   
   std::cout << "finished" << std::endl;
+  
+  return gtest_return_code;
 }
