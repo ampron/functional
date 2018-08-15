@@ -253,42 +253,6 @@ public:
   };
 };
 
-template <class F>
-struct OptionLiftedFunc {
-  F f;
-  
-  template <class T>
-  using Return = Option<typename std::result_of<F(T)>::type>;
-  
-  template <class T>
-  auto operator()(Option<T> op) -> Return<T> {
-    return std::move(op).map(f);
-  }
-};
-
-template <class F>
-auto op_lift(F&& f) -> OptionLiftedFunc<F> {
-  return { std::forward<F>(f) };
-}
-
-template <class F>
-struct OptionBoundFunc {
-  F f;
-  
-  template <class T>
-  using Return = typename std::result_of<F(T)>::type;
-  
-  template <class T>
-  auto operator()(Option<T> op) -> Return<T> {
-    return std::move(op).and_then(f);
-  }
-};
-
-template <class F>
-auto bind_op(F&& f) -> OptionBoundFunc<F> {
-  return { std::forward<F>(f) };
-}
-
 }
 
 template <class T>

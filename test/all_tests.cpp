@@ -429,8 +429,8 @@ int main(int nargs, char** vargs) {
     else              { return fun::some(std::move(s)); }
   };
   const auto y = fun::pipe( fun::some(std::string("345"))
-                          , fun::bind_op(safe_cstr)
-                          , fun::bind_op(small_str)
+                          , fun::bind(safe_cstr)
+                          , fun::bind(small_str)
                           ).unwrap_or(std::string("failure"));
   std::cout << y << std::endl;
   
