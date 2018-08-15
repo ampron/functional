@@ -15,6 +15,7 @@ set(PUBLIC_HEADERS
     include/fun/result.h
     include/fun/result/result.declare.h
     include/fun/result/result.impl.h
+    include/fun/pipe.h
     include/fun/type_support.h
 )
 
