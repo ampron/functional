@@ -442,7 +442,7 @@ int main(int nargs, char** vargs) {
   // std::cout << y_(fun::some(std::string("345*"))) << std::endl;
   
   const auto x = fun::make_ok(y, 6., "hal:");
-  const auto baby = even_baby(nargs * 2.);
+  const auto baby = even_baby(nargs * 2);
   // baby.as_ref().map([](const auto& b) { b.cry(); });
   // const auto baby2 = baby;
   // baby2.as_ref().map([](const auto& b) { b.cry(); });
