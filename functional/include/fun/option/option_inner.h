@@ -65,7 +65,7 @@ struct OptionUnion<T&> {
   explicit OptionUnion(T& obj) : _ptr(&obj) {}
   explicit OptionUnion(T* ptr) : _ptr(ptr) {}
   
-  bool is_some() const { return _ptr; }
+  bool is_some() const { return _ptr ? true : false; }
   
   T* as_ptr() { return _ptr; }
   
