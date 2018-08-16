@@ -8,6 +8,8 @@
 
 #include <fun/option/option.declare.h>
 
+#include <fun/result/result.declare.h>
+
 namespace fun {
 
 //==============================================================================

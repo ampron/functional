@@ -79,7 +79,7 @@ auto err_ref(E& val) -> Result<T, E&> {
 template <class T, class E>
 auto Result<T, E>::dump_ok() -> T {
   assert(_variant == Ok);
-	auto temp = std::move(_ok._val);
+  auto temp = std::move(_ok).unwrap();
 	_ok.~Sized<T>();
 	return temp;
 }
@@ -88,7 +88,7 @@ auto Result<T, E>::dump_ok() -> T {
 template <class T, class E>
 auto Result<T, E>::dump_err() -> E {
   assert(_variant == Err);
-	auto temp = std::move(_err._val);
+  auto temp = std::move(_err).unwrap();
 	_err.~Sized<E>();
 	return temp;
 }
@@ -105,8 +105,8 @@ template <class T, class E>
 Result<T, E>::Result(self_t&& other)
   : _variant(other._variant)
 {
-  if (_variant == Ok) { new (&_ok) Sized<T>{std::move(other._ok)}; }
-  else                { new (&_err) Sized<E>{std::move(other._err)}; }
+  if (_variant == Ok) { new (&_ok)  Sized<T>{ other.dump_ok() }; }
+  else                { new (&_err) Sized<E>{ other.dump_err() }; }
 }
 
 //------------------------------------------------------------------------------
@@ -172,27 +172,27 @@ auto Result<T, E>::is_err() const -> bool { return !is_ok(); }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_ptr() -> ok_value_t* { return is_ok() ? &_ok._val : nullptr; }
+auto Result<T, E>::as_ptr() -> ok_value_t* { return is_ok() ? &_ok.val() : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_ptr() const -> const ok_value_t* { return is_ok() ? &_ok._val : nullptr; }
+auto Result<T, E>::as_ptr() const -> const ok_value_t* { return is_ok() ? &_ok.val() : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_err_ptr() -> err_value_t* { return is_err() ? &_err._val : nullptr; }
+auto Result<T, E>::as_err_ptr() -> err_value_t* { return is_err() ? &_err.val() : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_err_ptr() const -> const err_value_t* { return is_err() ? &_err._val : nullptr; }
+auto Result<T, E>::as_err_ptr() const -> const err_value_t* { return is_err() ? &_err.val() : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::operator==(const self_t& other) const -> bool {
   if (is_ok()) {
-    return other.is_ok() ? (_ok._val == other._ok._val) : false;
+    return other.is_ok() ? (_ok.val() == other._ok.val()) : false;
   } else {
-    return other.is_err() ? (_err._val == other._err._val) : false;
+    return other.is_err() ? (_err.val() == other._err.val()) : false;
   }
 }
 
@@ -228,15 +228,15 @@ auto Result<T, E>::unwrap_err() && -> E { return dump_err(); }
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::as_ref() -> Result<ok_value_t&, err_value_t&> {
-  if (is_ok()) { return ok_ref(_ok._val); }
-  else         { return err_ref(_err._val); }
+  if (is_ok()) { return ok_ref(_ok.val()); }
+  else         { return err_ref(_err.val()); }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::as_ref() const -> Result<const ok_value_t&, const err_value_t&> {
-  if (is_ok()) { return ok_ref(this->_ok._val); }
-  else         { return err_ref(this->_err._val); }
+  if (is_ok()) { return ok_ref(_ok.val()); }
+  else         { return err_ref(_err.val()); }
 }
 
 //------------------------------------------------------------------------------

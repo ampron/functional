@@ -9,9 +9,9 @@ namespace fun {
 //------------------------------------------------------------------------------
 struct Unit {
   using Self = Unit;
-  
+
   constexpr Unit() {}
-  
+
   constexpr bool operator==(const Self&) const { return true; }
   constexpr bool operator!=(const Self&) const { return false; }
 };
@@ -23,15 +23,27 @@ struct ForwardArgs {};
 template <class T> struct Sized;
 
 template <class T>
-struct Sized<T&> { std::reference_wrapper<T> _val; };
+struct Sized<T&> {
+  std::reference_wrapper<T> _val;
+
+  auto val() -> T& { return _val; }
+  auto val() const -> const T& { return _val; }
+
+  auto unwrap() && -> T& { return _val; }
+};
 
 template <class T>
 struct Sized {
   T _val;
-  
+
   template <class ...Args>
   Sized(Args&&... args) : _val(std::forward<Args>(args)...)
   {}
+
+  auto val() -> T& { return _val; }
+  auto val() const -> const T& { return _val; }
+
+  auto unwrap() && -> T { return std::move(_val); }
 };
 
 //------------------------------------------------------------------------------
@@ -54,7 +66,7 @@ template <bool unvoid, class F, class ...Args> struct UnvoidedFunc;
 template <class F, class ...Args>
 struct UnvoidedFunc<true, F, Args...> {
   using Output = ResultOf_t<F(Args...)>;
-  
+
   auto operator()(F f, Args&& ...args) const -> Output {
     f(std::forward<Args>(args)...);
     return {};
@@ -64,7 +76,7 @@ struct UnvoidedFunc<true, F, Args...> {
 template <class F, class ...Args>
 struct UnvoidedFunc<false, F, Args...> {
   using Output = ResultOf_t<F(Args...)>;
-  
+
   auto operator()(F f, Args&& ...args) const -> Output {
     return f(std::forward<Args>(args)...);
   }
