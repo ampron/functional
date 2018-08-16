@@ -20,32 +20,32 @@ template <class T> struct MakeOkResult{ T val; };
 template <class E> struct MakeErrResult{ E val; };
 
 template <class T>
-auto return_ok(T val) -> MakeOkResult<T>;
+auto ok(T val) -> MakeOkResult<T>;
 
 template <class E, class T>
-auto return_ok(T val) -> Result<T, E>;
+auto ok(T val) -> Result<T, E>;
 
 template <class T>
-auto return_ok_cref(const T& val) -> MakeOkResult<const T&>;
+auto ok_cref(const T& val) -> MakeOkResult<const T&>;
 template <class T>
-auto return_ok_ref(T& val) -> MakeOkResult<T&>;
+auto ok_ref(T& val) -> MakeOkResult<T&>;
 
 template <class E, class T>
-auto return_ok_ref(T& val) -> Result<T&, E>;
+auto ok_ref(T& val) -> Result<T&, E>;
 
 template <class E>
-auto return_err(E val) -> MakeErrResult<E>;
+auto err(E val) -> MakeErrResult<E>;
 
 template <class T, class E>
-auto return_err(E val) -> Result<T, E>;
+auto err(E val) -> Result<T, E>;
 
 template <class E>
-auto return_err_cref(const E& val) -> MakeErrResult<const E&>;
+auto err_cref(const E& val) -> MakeErrResult<const E&>;
 template <class E>
-auto return_err_ref(E& val) -> MakeErrResult<E&>;
+auto err_ref(E& val) -> MakeErrResult<E&>;
 
 template <class T, class E>
-auto return_err_ref(E& val) -> Result<T, E&>;
+auto err_ref(E& val) -> Result<T, E&>;
 
 struct OkTag {};
 struct ErrTag {};
@@ -70,7 +70,7 @@ template <class T, class E>
 class Result {
 public:
   using self_t = Result<T, E>;
-  
+
   using ok_value_t = std::remove_reference_t<T>;
   using err_value_t = std::remove_reference_t<E>;
 
@@ -95,7 +95,7 @@ public:
 
   Result(const self_t&);
   auto operator=(const self_t&) -> self_t&;
-  
+
   Result() = delete;
 
   auto clone() const -> self_t;
@@ -105,15 +105,15 @@ public:
 
   template <typename ...Args>
   Result(ErrTag, ForwardArgs, Args&& ...args);
-  
+
   Result(MakeOkResult<T>);
   Result(MakeErrResult<E>);
-  
+
   template <class Tag, class ...Args, size_t ...Indices>
   Result(Tag tag, std::tuple<Args...>& args, std::integer_sequence<size_t, Indices...>)
     : Result(tag, ForwardArgs{}, std::forward<Args>(std::get<Indices>(args))...)
   {}
-  
+
   template <class Tag, class ...Args>
   Result(MakeResultArgs<Tag, Args...>&& make_args)
     : Result(Tag{}, make_args.tup, std::index_sequence_for<Args...>{})
@@ -122,12 +122,14 @@ public:
   bool is_ok() const;
   bool is_err() const;
 
-  ok_value_t* as_ptr();
-  err_value_t* as_err_ptr();
+  auto as_ptr() -> ok_value_t*;
+  auto as_ptr() const -> const ok_value_t*;
+  auto as_err_ptr() -> err_value_t*;
+  auto as_err_ptr() const -> const err_value_t*;
 
   bool operator==(const self_t& other) const;
   bool operator!=(const self_t& other) const;
-  
+
   bool operator==(const MakeOkResult<T>& other) const {
     if (is_ok()) { return _ok._val == other.val; }
     else         { return false; }
@@ -137,18 +139,24 @@ public:
     else         { return _err._val == other.val; }
   }
 
-  T unwrap();
-  E unwrap_err();
-  
+  auto unwrap() && -> T;
+
+  auto unwrap_or(T alt) && -> T;
+
+  template <class F>
+  auto unwrap_or_else(F alt_func) && -> T;
+
+  auto unwrap_err() && -> E;
+
   auto as_ref() -> Result<ok_value_t&, err_value_t&>;
-  
+
   auto as_ref() const -> Result<const ok_value_t&, const err_value_t&>;
-  
+
   auto as_cref() const -> Result<const ok_value_t&, const err_value_t&>;
 
   auto ok() && -> Option<T>;
   auto err() && -> Option<E>;
-  
+
   template <class F>
   using MatchReturn = ResultOf_t<F(T)>;
 
@@ -168,13 +176,13 @@ public:
   auto map_err(F func) && -> ErrMapReturn<F>;
 
   template <class F>
-  using AndThenReturn = Result<typename ResultOf_t<F(T)>::OkT, E>;
+  using AndThenReturn = Result<typename ResultOf_t<F(T)>::ok_value_t, E>;
 
   template <typename F /* T -> Result<U, E> */>
   auto and_then(F func) && -> AndThenReturn<F>;
 
   template <class F>
-  using OrElseReturn = Result<T, typename ResultOf_t<F(T)>::ErrT>;
+  using OrElseReturn = Result<T, typename ResultOf_t<F(T)>::err_value_t>;
 
   template <typename F>
   auto or_else(F alt_func) && -> OrElseReturn<F>;

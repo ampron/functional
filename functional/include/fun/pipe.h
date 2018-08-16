@@ -16,40 +16,22 @@ auto pipe(T&& x, F&& f, Args&& ...args) {
 
 //------------------------------------------------------------------------------
 template <class F>
-struct LiftedFunc {
-  F f;
-
-  template <template<typename> class Functor, class T>
-  using Return = Functor<typename std::result_of<F(T)>::type>;
-
-  template <template<typename> class Functor, class T>
-  auto operator()(Functor<T> op) -> Return<Functor, T> {
-    return std::move(op).map(f);
-  }
-};
-
-template <class F>
-auto lift(F&& f) -> LiftedFunc<F> {
-  return { std::forward<F>(f) };
+auto lift(F&& f) {
+  return
+    [f = std::forward<F>(f)]
+    (auto functor) {
+      return std::move(functor).map(f);
+    };
 }
 
 //------------------------------------------------------------------------------
 template <class F>
-struct BoundFunc {
-  F f;
-
-  template <class T>
-  using Return = typename std::result_of<F(T)>::type;
-
-  template <template<typename> class M, class T>
-  auto operator()(M<T> op) -> Return<T> {
-    return std::move(op).and_then(f);
-  }
-};
-
-template <class F>
-auto bind(F&& f) -> BoundFunc<F> {
-  return { std::forward<F>(f) };
+auto bind(F&& f) {
+  return
+    [f = std::forward<F>(f)]
+    (auto monad) {
+      return std::move(monad).and_then(f);
+    };
 }
 
 } // end namespace fun

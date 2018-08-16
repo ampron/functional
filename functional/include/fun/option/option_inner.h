@@ -30,6 +30,10 @@ struct OptionUnion<Unit> {
   OptionUnion() : _variant(NONE) {}
 
   explicit OptionUnion(Unit) : _variant(SOME) {}
+
+  template <typename ...Args>
+  explicit OptionUnion(ForwardArgs, Args&& ...args) : _variant(SOME) {}
+  
   
   bool is_some() const { return _variant == SOME; }
   

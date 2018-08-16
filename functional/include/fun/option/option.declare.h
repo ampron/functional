@@ -22,7 +22,7 @@ template <typename T> class Option;
 auto some() -> Option<Unit>;
 
 template<typename T>
-auto some(T&& x) -> Option<std::remove_reference_t<T>>;
+auto some(T x) -> Option<std::remove_reference_t<T>>;
 
 template<typename T>
 auto some(T* ptr) -> Option<T&>;
@@ -77,7 +77,7 @@ public:
 
   class ConstIter;
   class Iter;
-  
+
 private:
   // Data members
   OptionUnion<T> _inner;
@@ -90,9 +90,9 @@ public:
 
   Option(const self_t&) = default;
   auto operator=(const self_t&) -> self_t& = default;
-  
+
   self_t clone() const { return self_t(*this); }
-  
+
   explicit Option(OptionUnion<T> mem) : _inner(std::move(mem)) {}
 
   // Constructors
@@ -100,19 +100,19 @@ public:
   //! Default constructor is to the None value
   //!
   Option() = default;
-  
+
   explicit Option(T x) : _inner(std::move(x)) {}
 
   template <typename ...Args>
-  explicit Option<T>(ForwardArgs, Args&& ... args)
+  explicit Option(ForwardArgs, Args&& ... args)
     : _inner(ForwardArgs{}, std::forward<Args>(args)...)
   {}
-  
+
   template <class ...Args, size_t ...Indices>
   Option(SomeTag, std::tuple<Args...>& args, std::integer_sequence<size_t, Indices...>)
     : Option(ForwardArgs{}, std::forward<Args>(std::get<Indices>(args))...)
   {}
-  
+
   template <class ...Args>
   Option(MakeOptionArgs<Args...>&& make_args)
     : Option(SomeTag{}, make_args.tup, std::index_sequence_for<Args...>{})
@@ -128,7 +128,7 @@ public:
     return const_cast<OptionUnion<T>&>(_inner).as_ptr();
   }
   const value_t* as_const_ptr() const { return as_ptr(); }
-  
+
   auto as_ref() -> Option<value_t&> {
     if (is_some()) { return some_ref(*as_ptr()); }
     else           { return {}; }
@@ -145,7 +145,7 @@ public:
   bool operator!=(const Option<T>& other) const {
     return !(*this == other);
   }
-  
+
   template <class F>
   using MatchReturn = ResultOf_t<F(T)>;
 
@@ -165,10 +165,13 @@ public:
   ConstIter cend() const;
 
   template<typename E, typename ... Args>
-  auto ok_or(Args&& ... args) && -> Result<T, E>;
+  auto ok_or(E err) && -> Result<T, E>;
 
-  template<typename E, typename ErrFuncT>
-  auto ok_or_else(ErrFuncT err_func) && -> Result<T, E>;
+  template <class F>
+  using ErrorAlternative = ResultOf_t<F()>;
+
+  template<typename ErrFuncT>
+  auto ok_or_else(ErrFuncT err_func) && -> Result<T, ErrorAlternative<ErrFuncT>>;
 
   template <class F>
   using MappedOption = Option<ResultOf_t<F(T)>>;
@@ -216,7 +219,7 @@ public:
   T expect(const char* err_msg);
 
   T unwrap_or(T alt);
-  
+
   template <class F>
   T unwrap_or_else(F alt_func);
 
@@ -227,7 +230,7 @@ public:
     const value_t* _ptr = nullptr;
   public:
     ConstIter() = default;
-    ConstIter(const value_t* ptr);
+    explicit ConstIter(const value_t* ptr);
 
     // overload *, ->, and ++_
     const value_t& operator*() const;
@@ -242,7 +245,7 @@ public:
     value_t* _ptr = nullptr;
   public:
     Iter() = default;
-    Iter(value_t* ptr);
+    explicit Iter(value_t* ptr);
 
     // overload *, ->, and ++_
     value_t& operator*() const;

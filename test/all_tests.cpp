@@ -252,7 +252,7 @@ TEST(OptionTest, bind) {
 //------------------------------------------------------------------------------
 TEST(OptionTest, iteration) {
   using std::vector;
-  
+
   auto xs = example_vector();
   auto maybe_xs = fun::some(&xs);
   for (auto& xs : maybe_xs) {
@@ -260,7 +260,7 @@ TEST(OptionTest, iteration) {
   }
 
   ASSERT_EQ(xs.size(), example_vector().size() + 1);
-  
+
   auto maybe_ys = fun::some(example_vector());
   for (auto& ys : maybe_ys) {
       ys.push_back(7.0);
@@ -294,37 +294,37 @@ TEST(OptionTest, expect) {
 
 //------------------------------------------------------------------------------
 TEST(ResultTest, construction) {
-  const auto x = fun::return_ok<std::string>(3);
+  const auto x = fun::ok<std::string>(3);
   ASSERT_EQ(x.clone().unwrap(), 3);
-  const auto y = fun::return_err<int>(std::string("fail"));
+  const auto y = fun::err<int>(std::string("fail"));
   ASSERT_EQ(y.clone().unwrap_err().size(), size_t(4));
   auto z = fun::Result<std::vector<double>, std::string>(
     fun::OkTag{}, fun::ForwardArgs{}, 5, 2.0
   );
   ASSERT_EQ(std::move(z).unwrap().size(), size_t(5));
   const auto xs = example_vector();
-  const auto xs_ref = fun::return_ok_ref<std::string>(xs);
+  const auto xs_ref = fun::ok_ref<std::string>(xs);
   ASSERT_EQ(xs_ref.clone().unwrap().size(), xs.size());
-  const auto xs_err_ref = fun::return_err_ref<std::string>(xs);
+  const auto xs_err_ref = fun::err_ref<std::string>(xs);
   ASSERT_EQ(xs_err_ref.clone().unwrap_err().size(), xs.size());
 }
 
 //------------------------------------------------------------------------------
 TEST(ResultTest, unwrap) {
-  auto p = fun::return_ok<std::string>(example_unique_one()).unwrap();
+  auto p = fun::ok<std::string>(example_unique_one()).unwrap();
   ASSERT_TRUE(p.get());
 }
 
 //------------------------------------------------------------------------------
 TEST(ResultTest, equality) {
   using std::string;
-  
-  const auto a = fun::return_ok<string>(5.0);
-  const auto b = fun::return_ok<string>(5.0);
-  const auto c = fun::return_ok<string>(4.0);
-  const auto d = fun::return_err<double>(string("not a number"));
-  const auto e = fun::return_err<double>(string("not a number"));
-  
+
+  const auto a = fun::ok<string>(5.0);
+  const auto b = fun::ok<string>(5.0);
+  const auto c = fun::ok<string>(4.0);
+  const auto d = fun::err<double>(string("not a number"));
+  const auto e = fun::err<double>(string("not a number"));
+
   ASSERT_EQ(a, b);
   ASSERT_NE(a, c);
   ASSERT_NE(a, d);
@@ -335,13 +335,13 @@ TEST(ResultTest, equality) {
 TEST(ResultTest, into_option) {
   using std::string;
   using std::unique_ptr;
-  
-  const auto a = fun::return_ok<string>(example_unique_one()).ok();
+
+  const auto a = fun::ok<string>(example_unique_one()).ok();
   const auto n = a.as_ref().map([](const unique_ptr<int>& p) -> int { return *p; })
                   .unwrap_or(0);
   ASSERT_EQ(n, 1);
-  
-  const auto b = fun::return_err<string>(example_unique_one()).err();
+
+  const auto b = fun::err<string>(example_unique_one()).err();
   const auto m = b.as_ref().map([](const unique_ptr<int>& p) -> int { return *p; })
                   .unwrap_or(0);
   ASSERT_EQ(m, 1);
@@ -349,11 +349,11 @@ TEST(ResultTest, into_option) {
 
 //------------------------------------------------------------------------------
 TEST(ResultTest, variant_type_equality) {
-  const auto x = fun::return_ok<std::string>(3);
-  ASSERT_TRUE(x == fun::return_ok(3));
-  ASSERT_TRUE(fun::return_ok(3) == x);
-  ASSERT_TRUE(x == fun::return_err(std::string()));
-  ASSERT_TRUE(fun::return_err(std::string()) == x);
+  const auto x = fun::ok<std::string>(3);
+  ASSERT_TRUE(x == fun::ok(3));
+  ASSERT_TRUE(fun::ok(3) == x);
+  ASSERT_TRUE(x == fun::err(std::string()));
+  ASSERT_TRUE(fun::err(std::string()) == x);
 }
 
 //------------------------------------------------------------------------------
@@ -365,7 +365,7 @@ public:
 
 class CryBaby {
   int _n = 0;
-  
+
 public:
   ~CryBaby() {
     std::cout << "waaaaa destruction!" << std::endl;
@@ -379,7 +379,7 @@ public:
     std::cout << "waaaaa copy assign!" << std::endl;
     return *this;
   }
-  
+
   CryBaby(Self&& other) {
     std::cout << "waaaaa move construction!" << std::endl;
   }
@@ -387,9 +387,9 @@ public:
     std::cout << "waaaaa move assign!" << std::endl;
     return *this;
   }
-  
+
   CryBaby() = default;
-  
+
   void cry() const { std::cout << "waaaaa!" << std::endl; }
 };
 
@@ -406,7 +406,7 @@ auto good_int(const int n) -> fun::Result<Foo, int>
     return fun::make_ok(n, x);
   }
   else {
-    // return fun::return_err(n);
+    // return fun::err(n);
     return fun::make_err(n);
   }
 }
@@ -419,7 +419,7 @@ auto even_baby(const int n) -> fun::Option<CryBaby> {
 int main(int nargs, char** vargs) {
   ::testing::InitGoogleTest(&nargs, vargs);
   const auto gtest_return_code = RUN_ALL_TESTS();
-  
+
   const auto safe_cstr = [](std::string s) -> fun::Option<std::string> {
     if (s.empty()) { return {}; }
     else           { return fun::some(std::move(s)); }
@@ -433,21 +433,21 @@ int main(int nargs, char** vargs) {
                           , fun::bind(small_str)
                           ).unwrap_or(std::string("failure"));
   std::cout << y << std::endl;
-  
+
   // const auto y_ = fun::compose(
   //   fun::bind_op(safe_cstr),
   //   fun::bind_op(small_str),
   //   [](auto&& op) { return std::forward<decltype(op)>(op).unwrap_or(std::string("failure")); }
   // );
   // std::cout << y_(fun::some(std::string("345*"))) << std::endl;
-  
+
   const auto x = fun::make_ok(y, 6., "hal:");
   const auto baby = even_baby(nargs * 2);
   // baby.as_ref().map([](const auto& b) { b.cry(); });
   // const auto baby2 = baby;
   // baby2.as_ref().map([](const auto& b) { b.cry(); });
-  
+
   std::cout << "finished" << std::endl;
-  
+
   return gtest_return_code;
 }

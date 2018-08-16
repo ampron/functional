@@ -15,62 +15,62 @@ namespace fun {
 // Result-releated function definitions
 //------------------------------------------------------------------------------
 template <class T>
-auto return_ok(T val) -> MakeOkResult<T> {
+auto ok(T val) -> MakeOkResult<T> {
   return { std::move(val) };
 }
 
 //------------------------------------------------------------------------------
 template <class E, class T>
-auto return_ok(T val) -> Result<T, E> {
-  return return_ok(std::move(val));
+auto ok(T val) -> Result<T, E> {
+  return fun::ok(std::move(val));
 }
 
 //------------------------------------------------------------------------------
 template <class T>
-auto return_ok_cref(const T& val) -> MakeOkResult<const T&> {
+auto ok_cref(const T& val) -> MakeOkResult<const T&> {
   return { val };
 }
 
 //------------------------------------------------------------------------------
 template <class T>
-auto return_ok_ref(T& val) -> MakeOkResult<T&> {
+auto ok_ref(T& val) -> MakeOkResult<T&> {
   return { val };
 }
 
 //------------------------------------------------------------------------------
 template <class E, class T>
-auto return_ok_ref(T& val) -> Result<T&, E> {
-  return return_ok_ref(val);
+auto ok_ref(T& val) -> Result<T&, E> {
+  return ok_ref(val);
 }
 
 //------------------------------------------------------------------------------
 template <class E>
-auto return_err(E val) -> MakeErrResult<E> {
+auto err(E val) -> MakeErrResult<E> {
   return { std::move(val) };
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto return_err(E val) -> Result<T, E> {
-  return return_err(std::move(val));
+auto err(E val) -> Result<T, E> {
+  return fun::err(std::move(val));
 }
 
 //------------------------------------------------------------------------------
 template <class E>
-auto return_err_cref(const E& val) -> MakeErrResult<const E&> {
+auto err_cref(const E& val) -> MakeErrResult<const E&> {
   return { val };
 }
 
 //------------------------------------------------------------------------------
 template <class E>
-auto return_err_ref(E& val) -> MakeErrResult<E&> {
+auto err_ref(E& val) -> MakeErrResult<E&> {
   return { val };
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto return_err_ref(E& val) -> Result<T, E&> {
-  return return_err_ref(val);
+auto err_ref(E& val) -> Result<T, E&> {
+  return err_ref(val);
 }
 
 //==============================================================================
@@ -172,11 +172,19 @@ auto Result<T, E>::is_err() const -> bool { return !is_ok(); }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_ptr() -> ok_value_t* { return is_ok() ? &_ok : nullptr; }
+auto Result<T, E>::as_ptr() -> ok_value_t* { return is_ok() ? &_ok._val : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_err_ptr() -> err_value_t* { return is_err() ? &_err : nullptr; }
+auto Result<T, E>::as_ptr() const -> const ok_value_t* { return is_ok() ? &_ok._val : nullptr; }
+
+//------------------------------------------------------------------------------
+template <class T, class E>
+auto Result<T, E>::as_err_ptr() -> err_value_t* { return is_err() ? &_err._val : nullptr; }
+
+//------------------------------------------------------------------------------
+template <class T, class E>
+auto Result<T, E>::as_err_ptr() const -> const err_value_t* { return is_err() ? &_err._val : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
@@ -194,24 +202,41 @@ auto Result<T, E>::operator!=(const self_t& other) const -> bool { return !(*thi
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::unwrap() -> T { return dump_ok(); }
+auto Result<T, E>::unwrap() && -> T { return dump_ok(); }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::unwrap_err() -> E { return dump_err(); }
+auto Result<T, E>::unwrap_or(T alt) && -> T {
+  if (is_ok()) { return dump_ok(); }
+  else         { return std::move(alt); }
+}
+
+//------------------------------------------------------------------------------
+template <class T, class E>
+template <class F>
+auto Result<T, E>::unwrap_or_else(F alt_func) && -> T {
+  return std::move(*this).match(
+    [](T&& x) { return std::move(x); },
+    [&](E&& err) { return alt_func(std::move(err)); }
+  );
+}
+
+//------------------------------------------------------------------------------
+template <class T, class E>
+auto Result<T, E>::unwrap_err() && -> E { return dump_err(); }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::as_ref() -> Result<ok_value_t&, err_value_t&> {
-  if (is_ok()) { return return_ok_ref(_ok._val); }
-  else         { return return_err_ref(_err._val); }
+  if (is_ok()) { return ok_ref(_ok._val); }
+  else         { return err_ref(_err._val); }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::as_ref() const -> Result<const ok_value_t&, const err_value_t&> {
-  if (is_ok()) { return return_ok_ref(this->_ok._val); }
-  else         { return return_err_ref(this->_err._val); }
+  if (is_ok()) { return ok_ref(this->_ok._val); }
+  else         { return err_ref(this->_err._val); }
 }
 
 //------------------------------------------------------------------------------
@@ -245,40 +270,40 @@ auto Result<T, E>::match(OkFunc func_ok, ErrFunc func_err) && -> MatchReturn<OkF
     , "Ok-handling and Err-handling functions passed to match do not "
       "have the same return type"
     );
-  return is_ok() ? unvoid_call(func_ok, unwrap())
-                 : unvoid_call(func_err, unwrap_err());
+  return is_ok() ? unvoid_call(func_ok, dump_ok())
+                 : unvoid_call(func_err, dump_err());
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F>
 auto Result<T, E>::map(F func) && -> MapReturn<F> {
-  if (is_ok()) { return return_ok(unvoid_call(func, unwrap())); }
-  else         { return return_err(unwrap_err()); }
+  if (is_ok()) { return fun::ok(unvoid_call(func, dump_ok())); }
+  else         { return fun::err(dump_err()); }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F>
 auto Result<T, E>::map_err(F func) && -> ErrMapReturn<F> {
-    if (is_err()) { return return_err(unvoid_call(func, unwrap_err())); }
-    else          { return return_ok(unwrap()); }
+    if (is_err()) { return fun::err(unvoid_call(func, dump_err())); }
+    else          { return fun::ok(dump_ok()); }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F /* T -> Result<U, E> */>
 auto Result<T, E>::and_then(F func) && -> AndThenReturn<F> {
-    if (is_ok()) { return unvoid_call(func, unwrap()); }
-    else         { return return_err(unwrap_err()); }
+    if (is_ok()) { return unvoid_call(func, dump_ok()); }
+    else         { return fun::err(dump_err()); }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F>
 auto Result<T, E>::or_else(F alt_func) && -> OrElseReturn<F> {
-    if (is_ok()) { return return_ok(unwrap()); }
-    else         { return unvoid_call(alt_func, unwrap_err()); }
+    if (is_ok()) { return fun::ok(dump_ok()); }
+    else         { return unvoid_call(alt_func, dump_err()); }
 }
 
 }

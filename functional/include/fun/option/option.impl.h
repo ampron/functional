@@ -13,12 +13,12 @@ namespace fun {
 //==============================================================================
 // Option-releated function definitions
 //------------------------------------------------------------------------------
-auto some() -> Option<Unit> { return some(Unit{}); }
+inline auto some() -> Option<Unit> { return some(Unit{}); }
 
 //------------------------------------------------------------------------------
 template<typename T>
-auto some(T&& x) -> Option<typename std::remove_reference<T>::type> {
-  return Option<T>(std::forward<T>(x));
+auto some(T x) -> Option<typename std::remove_reference<T>::type> {
+  return Option<T>(std::move(x));
 }
 
 //------------------------------------------------------------------------------
@@ -91,25 +91,19 @@ auto Option<T>::cend() const -> ConstIter { return ConstIter(); }
 //------------------------------------------------------------------------------
 template <typename T>
 template <typename E, typename ... Args>
-auto Option<T>::ok_or(Args&& ... args) && -> Result<T, E>
+auto Option<T>::ok_or(E err) && -> Result<T, E>
 {
-  return is_some()
-    ? Result<T, E>::Ok(unwrap())
-    : Result<T, E>::Err(std::forward<Args>(args) ...);
+  if (is_some()) { return fun::make_ok(unwrap()); }
+  else           { return fun::err(std::move(err)); }
 }
 
 //------------------------------------------------------------------------------
 template <typename T>
-template<typename E, typename ErrFuncT>
-auto Option<T>::ok_or_else(ErrFuncT err_func) && -> Result<T, E>
+template<typename ErrFuncT>
+auto Option<T>::ok_or_else(ErrFuncT err_func) && -> Result<T, ErrorAlternative<ErrFuncT>>
 {
-  static_assert(
-    std::is_same<typename std::result_of<ErrFuncT()>::type, E>::value
-    , "function passed to `Option::ok_or_else` does not have correct return type, E"
-    );
-  return is_some()
-         ? Result<T, E>::Ok(unwrap())
-         : Result<T, E>::Err(unvoid_call(err_func));
+  if (is_some()) { return fun::make_ok(unwrap()); }
+  else           { return fun::make_err(unvoid_call(err_func)); }
 }
 
 //------------------------------------------------------------------------------
