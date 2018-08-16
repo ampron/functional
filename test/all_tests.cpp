@@ -349,11 +349,11 @@ TEST(ResultTest, into_option) {
 
 //------------------------------------------------------------------------------
 TEST(ResultTest, variant_type_equality) {
-  const auto x = fun::ok<std::string>(3);
+  const fun::Result<int, std::string> x = fun::ok(3);
   ASSERT_TRUE(x == fun::ok(3));
   ASSERT_TRUE(fun::ok(3) == x);
-  ASSERT_TRUE(x == fun::err(std::string()));
-  ASSERT_TRUE(fun::err(std::string()) == x);
+  ASSERT_TRUE(x != fun::err(std::string()));
+  ASSERT_TRUE(fun::err(std::string()) != x);
 }
 
 //------------------------------------------------------------------------------
