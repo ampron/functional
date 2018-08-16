@@ -44,7 +44,7 @@ write_basic_package_version_file("cmake/FunctionalConfigVersion.cmake"
 install(
   EXPORT FunctionalTargets
   NAMESPACE Functional::
-  DESTINATION lib/cmake/fun
+  DESTINATION lib/cmake/Functional
 )
 
 install(
@@ -64,5 +64,5 @@ install(
 # install the CMake configure files so the user has easy "find_package" capabilities
 install(
   FILES "cmake/FunctionalConfig.cmake" "${PROJECT_BINARY_DIR}/cmake/FunctionalConfigVersion.cmake"
-  DESTINATION lib/cmake/fun
+  DESTINATION lib/cmake/Functional
 )
