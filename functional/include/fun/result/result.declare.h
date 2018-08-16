@@ -139,6 +139,9 @@ public:
     else         { return _err._val == other.val; }
   }
 
+  template <class U>
+  bool operator!=(const U& other) const { return !(*this == other); }
+
   auto unwrap() && -> T;
 
   auto unwrap_or(T alt) && -> T;
@@ -204,6 +207,11 @@ bool operator==(const fun::MakeOkResult<T>& a, const fun::Result<T, E>& b) {
 template <class T, class E>
 bool operator==(const fun::MakeErrResult<E>& a, const fun::Result<T, E>& b) {
   return b == a;
+}
+
+template <class U, class T, class E>
+bool operator!=(const U& a, const fun::Result<T, E>& b) {
+  return b != a;
 }
 
 template <class T, class E>
