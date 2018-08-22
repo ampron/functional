@@ -316,6 +316,25 @@ TEST(ResultTest, unwrap) {
 }
 
 //------------------------------------------------------------------------------
+TEST(ResultTest, unwrap_ref) {
+  fun::Result<const int&, std::string> res = fun::make_err("blah");
+  {
+    const auto n = 5;
+    res = fun::ok_ref(n);
+    ASSERT_TRUE(res.is_ok());
+    const auto n_ = res.clone().unwrap();
+    ASSERT_EQ(n_, n);
+  }
+  {
+    const auto n = 3;
+    res = fun::ok_ref(n);
+    ASSERT_TRUE(res.is_ok());
+    const auto n_ = res.clone().unwrap();
+    ASSERT_EQ(n_, n);
+  }
+}
+
+//------------------------------------------------------------------------------
 TEST(ResultTest, equality) {
   using std::string;
 
