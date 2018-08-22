@@ -140,6 +140,22 @@ auto Result<T, E>::operator=(const self_t& other) -> self_t& {
 
 //------------------------------------------------------------------------------
 template <class T, class E>
+auto Result<T, E>::operator=(const MakeOkResult<T>& other) -> self_t& {
+  (*this).~Result<T, E>();
+  new (this) Result<T, E>(other);
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+template <class T, class E>
+auto Result<T, E>::operator=(const MakeErrResult<E>& other) -> self_t& {
+  (*this).~Result<T, E>();
+  new (this) Result<T, E>(other);
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+template <class T, class E>
 auto Result<T, E>::clone() const -> self_t { return self_t(*this); }
 
 //------------------------------------------------------------------------------

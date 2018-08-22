@@ -118,6 +118,9 @@ public:
   Result(MakeResultArgs<Tag, Args...>&& make_args)
     : Result(Tag{}, make_args.tup, std::index_sequence_for<Args...>{})
   {}
+  
+  auto operator=(const MakeOkResult<T>&) -> self_t&;
+  auto operator=(const MakeErrResult<E>&) -> self_t&;
 
   bool is_ok() const;
   bool is_err() const;
