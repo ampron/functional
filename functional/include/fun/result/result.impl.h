@@ -111,7 +111,7 @@ Result<T, E>::Result(self_t&& other)
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::operator=(self_t&& other) noexcept -> self_t& {
+auto Result<T, E>::operator=(self_t&& other) -> self_t& {
   if (this != &other) {
     (*this).~Result<T, E>();
     new (this) self_t(std::move(other));
