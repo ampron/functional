@@ -278,7 +278,7 @@ auto Result<T, E>::ok() && -> Option<T> {
 template <class T, class E>
 auto Result<T, E>::err() && -> Option<E> {
   if (is_err()) { return some(dump_err()); }
-  else         { return {}; }
+  else          { return {}; }
 }
 
 //------------------------------------------------------------------------------
@@ -300,16 +300,16 @@ auto Result<T, E>::match(OkFunc func_ok, ErrFunc func_err) && -> MatchReturn<OkF
 template <class T, class E>
 template <typename F>
 auto Result<T, E>::map(F func) && -> MapReturn<F> {
-  if (is_ok()) { return fun::ok(unvoid_call(func, dump_ok())); }
-  else         { return fun::err(dump_err()); }
+  if (is_ok()) { return { OkTag{}, ForwardArgs{}, unvoid_call(func, dump_ok()) }; }
+  else         { return { ErrTag{}, ForwardArgs{}, dump_err() }; }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F>
 auto Result<T, E>::map_err(F func) && -> ErrMapReturn<F> {
-    if (is_err()) { return fun::err(unvoid_call(func, dump_err())); }
-    else          { return fun::ok(dump_ok()); }
+  if (is_err()) { return { ErrTag{}, ForwardArgs{}, unvoid_call(func, dump_err()) }; }
+  else          { return { OkTag{}, ForwardArgs{}, dump_ok() }; }
 }
 
 //------------------------------------------------------------------------------
@@ -317,14 +317,14 @@ template <class T, class E>
 template <typename F /* T -> Result<U, E> */>
 auto Result<T, E>::and_then(F func) && -> AndThenReturn<F> {
     if (is_ok()) { return unvoid_call(func, dump_ok()); }
-    else         { return fun::err(dump_err()); }
+    else         { return { ErrTag{}, ForwardArgs{}, dump_err() }; }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F>
 auto Result<T, E>::or_else(F alt_func) && -> OrElseReturn<F> {
-    if (is_ok()) { return fun::ok(dump_ok()); }
+  if (is_ok()) { return { OkTag{}, ForwardArgs{}, dump_ok() }; }
     else         { return unvoid_call(alt_func, dump_err()); }
 }
 

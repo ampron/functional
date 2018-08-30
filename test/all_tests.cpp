@@ -9,6 +9,30 @@
 
 #include "testing.h"
 
+//------------------------------------------------------------------------------
+class Monolith {
+private:
+  int _n;
+
+public:
+  using self_t = Monolith;
+
+  ~Monolith() = default;
+
+  Monolith(self_t&&) = delete;
+  auto operator=(self_t&&) -> self_t& = delete;
+
+  Monolith(const self_t&) = delete;
+  auto operator=(const self_t&) -> self_t& = delete;
+
+  Monolith() = delete;
+
+  explicit Monolith(const int n) : _n(n) {}
+
+  auto double_up() const -> int { return 2 * _n; }
+};
+
+//------------------------------------------------------------------------------
 void do_nothing() {}
 
 //------------------------------------------------------------------------------
@@ -373,6 +397,19 @@ TEST(ResultTest, variant_type_equality) {
   ASSERT_TRUE(fun::ok(3) == x);
   ASSERT_TRUE(x != fun::err(std::string()));
   ASSERT_TRUE(fun::err(std::string()) != x);
+}
+
+//------------------------------------------------------------------------------
+TEST(ResultTest, reference_mapping_is_copy_and_move_free) {
+  using std::vector;
+
+  Monolith obj(1);
+
+  const auto n =
+    fun::ok<std::string>(1)
+    .map([&](auto&&) -> Monolith& { return obj; });
+
+  ASSERT_TRUE(n.is_ok());
 }
 
 //------------------------------------------------------------------------------
