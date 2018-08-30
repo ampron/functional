@@ -30,6 +30,10 @@ public:
   explicit Monolith(const int n) : _n(n) {}
 
   auto double_up() const -> int { return 2 * _n; }
+
+  auto operator==(const self_t& rhs) const -> bool {
+    return _n == rhs._n;
+  }
 };
 
 //------------------------------------------------------------------------------
@@ -410,6 +414,23 @@ TEST(ResultTest, reference_mapping_is_copy_and_move_free) {
     .map([&](auto&&) -> Monolith& { return obj; });
 
   ASSERT_TRUE(n.is_ok());
+}
+
+//------------------------------------------------------------------------------
+TEST(ResultTest, result_reference_convertion_into_option) {
+  const auto msg = std::string("DEADBEEF");
+
+  const auto bad_result = fun::err<int>(msg);
+  ASSERT_TRUE(bad_result.is_err());
+
+  ASSERT_EQ(bad_result.as_ref().err().unwrap(), msg);
+  
+  Monolith obj(1);
+
+  const auto ok_result = fun::ok_ref<int>(obj);
+  ASSERT_TRUE(ok_result.is_ok());
+
+  ASSERT_EQ(ok_result.as_ref().ok().unwrap(), obj);
 }
 
 //------------------------------------------------------------------------------

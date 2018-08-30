@@ -68,6 +68,8 @@ struct OptionUnion<T&> {
 
   explicit OptionUnion(T& obj) : _ptr(&obj) {}
   explicit OptionUnion(T* ptr) : _ptr(ptr) {}
+
+  OptionUnion(ForwardArgs, T& obj) : _ptr(&obj) {}
   
   bool is_some() const { return _ptr ? true : false; }
   

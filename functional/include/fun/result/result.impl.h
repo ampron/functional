@@ -270,14 +270,14 @@ auto Result<T, E>::as_cref() const -> Result<const ok_value_t&, const err_value_
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::ok() && -> Option<T> {
-  if (is_ok()) { return some(dump_ok()); }
+  if (is_ok()) { return Option<T>{ ForwardArgs{}, dump_ok() }; }
   else         { return {}; }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::err() && -> Option<E> {
-  if (is_err()) { return some(dump_err()); }
+  if (is_err()) { return Option<E>{ ForwardArgs{}, dump_err() }; }
   else          { return {}; }
 }
 
