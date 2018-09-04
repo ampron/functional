@@ -21,7 +21,7 @@ struct OptionUnion<Unit> {
   OptionUnion(const Self&) = default;
   Self& operator=(const Self&)  = default;
   
-  Self clone() const { return Self(*this); }
+  Self clone() const { return *this; }
   
   // For reference type move = copy
   OptionUnion(Self&& other) = default;
@@ -107,28 +107,28 @@ struct OptionUnion {
     _variant = NONE;
   }
   
-  OptionUnion(const Self& other) : OptionUnion() { *this = other; }
+  OptionUnion(const Self& other) : _variant(other._variant) {
+    if (_variant == NONE) { _empty = 0; }
+    else                  { new (&_val) T(other._val); }
+  }
   Self& operator=(const Self& other) {
     if (this != &other) {
-      _variant = other._variant;
-      if (_variant == NONE) { _empty = 0; }
-      else { new (&_val) T(other._val); }
+      (*this).~OptionUnion<T>();
+      new (this) Self(other);
     }
     return *this;
   }
   
   Self clone() const { return Self(*this); }
   
-  OptionUnion(Self&& other) : OptionUnion() { *this = std::move(other); }
+  OptionUnion(Self&& other) : _variant(other._variant) {
+    if (_variant == NONE) { _empty = 0; }
+    else                  { new (&_val) T(other.dump()); }
+  }
   Self& operator=(Self&& other) {
     if (this != &other) {
-      // clear out this option if it contatins something
-      if (_variant == SOME) { dump(); }
-      
-      // move contents of other option into this one
-      _variant = other._variant;
-      if (_variant == NONE) { _empty = 0; }
-      else { new (&_val) T(other.dump()); }
+      (*this).~OptionUnion<T>();
+      new (this) Self(std::move(other));
     }
     return *this;
   }
@@ -158,9 +158,8 @@ struct OptionUnion {
 
   template <typename ...Args>
   void emplace(Args&& ...args) {
-    if (is_some()) { dump(); }
-    _variant = SOME;
-    new (&_val) T(std::forward<Args>(args) ...);
+    (*this).~OptionUnion<T>();
+    new (this) Self(ForwardArgs{}, std::forward<Args>(args)...);
   }
 };
 
