@@ -37,6 +37,37 @@ public:
 };
 
 //------------------------------------------------------------------------------
+class CryBaby {
+  int _n = 0;
+
+public:
+  ~CryBaby() {
+    std::cout << "waaaaa destruction!" << std::endl;
+  }
+
+  using Self = CryBaby;
+  CryBaby(const Self& other) {
+    std::cout << "waaaaa copy construction!" << std::endl;
+  }
+  auto operator=(const Self& other) -> Self& {
+    std::cout << "waaaaa copy assign!" << std::endl;
+    return *this;
+  }
+
+  CryBaby(Self&& other) {
+    std::cout << "waaaaa move construction!" << std::endl;
+  }
+  auto operator=(Self&& other) -> Self& {
+    std::cout << "waaaaa move assign!" << std::endl;
+    return *this;
+  }
+
+  CryBaby() = default;
+
+  void cry() const { std::cout << "waaaaa!" << std::endl; }
+};
+
+//------------------------------------------------------------------------------
 void do_nothing() {}
 
 //------------------------------------------------------------------------------
@@ -59,6 +90,49 @@ TEST(OptionTest, none_constructor) {
 TEST(OptionTest, some_constructor) {
   const fun::Option<int> op(3);
   ASSERT_TRUE(op.is_some());
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, move_assignment_with_cry_baby) {
+  const auto cry_baby = std::make_shared<CryBaby>();
+  ASSERT_TRUE(cry_baby.unique());
+  {
+    auto maybe_baby = fun::Option<std::shared_ptr<CryBaby>>();
+    ASSERT_TRUE(maybe_baby.is_none());
+
+    maybe_baby = fun::Option<std::shared_ptr<CryBaby>>(cry_baby);
+    ASSERT_TRUE(maybe_baby.is_some());
+    ASSERT_FALSE(cry_baby.unique());
+
+    maybe_baby = fun::Option<std::shared_ptr<CryBaby>>(std::make_shared<CryBaby>());
+    ASSERT_TRUE(maybe_baby.is_some());
+    ASSERT_TRUE(cry_baby.unique());
+  }
+
+  ASSERT_TRUE(cry_baby.unique());
+  cry_baby->cry();
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, copy_assignment_with_cry_baby) {
+  const auto cry_baby = std::make_shared<CryBaby>();
+  ASSERT_TRUE(cry_baby.unique());
+  {
+    fun::Option<std::shared_ptr<CryBaby>> maybe_baby{};
+    ASSERT_TRUE(maybe_baby.is_none());
+
+    maybe_baby = fun::Option<std::shared_ptr<CryBaby>>(cry_baby);
+    ASSERT_TRUE(maybe_baby.is_some());
+    ASSERT_FALSE(cry_baby.unique());
+
+    const fun::Option<std::shared_ptr<CryBaby>> other_maybe_baby{std::make_shared<CryBaby>()};
+    maybe_baby = other_maybe_baby;
+    ASSERT_TRUE(maybe_baby.is_some());
+    ASSERT_TRUE(cry_baby.unique());
+  }
+
+  ASSERT_TRUE(cry_baby.unique());
+  cry_baby->cry();
 }
 
 //------------------------------------------------------------------------------
@@ -438,36 +512,6 @@ class Foo {
 public:
   Foo() = delete;
   Foo(int, double) {}
-};
-
-class CryBaby {
-  int _n = 0;
-
-public:
-  ~CryBaby() {
-    std::cout << "waaaaa destruction!" << std::endl;
-  }
-
-  using Self = CryBaby;
-  CryBaby(const Self& other) {
-    std::cout << "waaaaa copy construction!" << std::endl;
-  }
-  auto operator=(const Self& other) -> Self& {
-    std::cout << "waaaaa copy assign!" << std::endl;
-    return *this;
-  }
-
-  CryBaby(Self&& other) {
-    std::cout << "waaaaa move construction!" << std::endl;
-  }
-  auto operator=(Self&& other) -> Self& {
-    std::cout << "waaaaa move assign!" << std::endl;
-    return *this;
-  }
-
-  CryBaby() = default;
-
-  void cry() const { std::cout << "waaaaa!" << std::endl; }
 };
 
 auto foobar(int n) -> fun::Result<fun::Option<Foo>, int> {
