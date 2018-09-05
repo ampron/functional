@@ -250,15 +250,15 @@ auto Result<T, E>::unwrap_err() && -> E { return dump_err(); }
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::as_ref() -> Result<ok_value_t&, err_value_t&> {
-  if (is_ok()) { return ok_ref(_ok.val()); }
-  else         { return err_ref(_err.val()); }
+  if (is_ok()) { return { OkTag{}, ForwardArgs{}, _ok.val() }; }
+  else         { return { ErrTag{}, ForwardArgs{}, _err.val() }; }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::as_ref() const -> Result<const ok_value_t&, const err_value_t&> {
-  if (is_ok()) { return ok_ref(_ok.val()); }
-  else         { return err_ref(_err.val()); }
+  if (is_ok()) { return { OkTag{}, ForwardArgs{}, _ok.val() }; }
+  else         { return { ErrTag{}, ForwardArgs{}, _err.val() }; }
 }
 
 //------------------------------------------------------------------------------
