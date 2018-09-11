@@ -34,3 +34,7 @@
 # Specific to this project
 local/
 build*/
+
+# SublimeEdit files
+*.sublime-project
+*.sublime-workspace
