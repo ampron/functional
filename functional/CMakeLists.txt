@@ -38,7 +38,7 @@ set_target_properties(functional_ide_source PROPERTIES
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("cmake/FunctionalConfigVersion.cmake"
   VERSION ${Functional_VERSION}
-  COMPATIBILITY SameMinorVersion
+  COMPATIBILITY SameMajorVersion
 )
 
 install(
