@@ -22,7 +22,7 @@ auto ok(T val) -> MakeOkResult<T> {
 //------------------------------------------------------------------------------
 template <class E, class T>
 auto ok(T val) -> Result<T, E> {
-  return fun::ok(std::move(val));
+  return { OkTag{}, ForwardArgs{}, std::move(val) };
 }
 
 //------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ auto ok_ref(T& val) -> MakeOkResult<T&> {
 //------------------------------------------------------------------------------
 template <class E, class T>
 auto ok_ref(T& val) -> Result<T&, E> {
-  return ok_ref(val);
+  return { OkTag{}, ForwardArgs{}, val };
 }
 
 //------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ auto err(E val) -> MakeErrResult<E> {
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto err(E val) -> Result<T, E> {
-  return fun::err(std::move(val));
+  return { ErrTag{}, ForwardArgs{}, std::move(val) };
 }
 
 //------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ auto err_ref(E& val) -> MakeErrResult<E&> {
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto err_ref(E& val) -> Result<T, E&> {
-  return err_ref(val);
+  return { ErrTag{}, ForwardArgs{}, val };
 }
 
 //==============================================================================
@@ -124,8 +124,8 @@ template <class T, class E>
 Result<T, E>::Result(const self_t& other)
   : _variant(other._variant)
 {
-  if (_variant == Ok) { new (&_ok) Sized<T>{other._ok}; }
-  else                { new (&_err) Sized<E>{other._err}; }
+  if (_variant == Ok) { new (&_ok) Sized<T>(other._ok.val()); }
+  else                { new (&_err) Sized<E>(other._err.val()); }
 }
 
 //------------------------------------------------------------------------------
@@ -162,14 +162,14 @@ auto Result<T, E>::clone() const -> self_t { return self_t(*this); }
 template <class T, class E>
 template <typename ...Args>
 Result<T, E>::Result(OkTag, ForwardArgs, Args&& ...args)
-  : _variant(Ok), _ok(Sized<T>{T(std::forward<Args>(args)...)})
+  : _variant(Ok), _ok(Sized<T>(std::forward<Args>(args)...))
 {}
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename ...Args>
 Result<T, E>::Result(ErrTag, ForwardArgs, Args&& ...args)
-  : _variant(Err), _err(Sized<E>{E(std::forward<Args>(args)...)})
+  : _variant(Err), _err(Sized<E>(std::forward<Args>(args)...))
 {}
 
 //------------------------------------------------------------------------------

@@ -26,6 +26,11 @@ template <class T>
 struct Sized<T&> {
   std::reference_wrapper<T> _val;
 
+  Sized(T& ref) : _val(ref) {}
+  Sized(const std::reference_wrapper<T> ref) : _val(ref) {}
+
+  Sized(const Sized<T&>& other) : _val(other._val) {}
+
   auto val() -> T& { return _val; }
   auto val() const -> const T& { return _val; }
 
