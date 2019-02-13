@@ -327,6 +327,17 @@ TEST(OptionTest, map_void) {
   );
 
   ASSERT_EQ(xs.size(), example_vector().size() + 1);
+  
+  const auto ys = example_vector();
+  size_t n = 0;
+  fun::some(ys).map(
+    [&](vector<double> vec) -> void {
+      vec.push_back(7.0);
+      n = vec.size();
+    }
+  );
+
+  ASSERT_EQ(ys.size() + 1, n);
 }
 
 //------------------------------------------------------------------------------
