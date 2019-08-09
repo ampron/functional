@@ -216,6 +216,8 @@ public:
   template <typename ...Args>
   auto emplace(Args&& ...args) -> self_t&;
 
+  auto cloned() const -> Option<value_t>;
+
   //!
   //! Returns the "Some" value, and sets it's self_t to "None"
   //! @note This function will segfault if it is called on a "None" Option

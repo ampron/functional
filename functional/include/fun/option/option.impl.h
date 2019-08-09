@@ -184,6 +184,12 @@ auto Option<T>::emplace(Args&& ...args) -> self_t&
   return *this;
 }
 
+template <class T>
+auto Option<T>::cloned() const -> Option<value_t>
+{
+  if (is_some()) { return Option<value_t>(clone().unwrap()); }
+  else           { return {}; }
+}
 //------------------------------------------------------------------------------
 //!
 //! Returns the "Some" value, and sets it's self to "None"
