@@ -117,7 +117,7 @@ template<typename T>
 template <typename F /* T -> U */>
 auto Option<T>::map(F func) && -> MappedOption<F>
 {
-  if (is_some()) { return some(unvoid_call(func, unwrap())); }
+  if (is_some()) { return make_some(unvoid_call(func, unwrap())); }
   else { return {}; }
 }
 
