@@ -90,7 +90,7 @@ struct OptionUnion {
   enum { NONE, SOME } _variant;
   union {
     uint8_t _empty;
-    T _val;
+    std::remove_const_t<T> _val;
   };
   
   // ** only call on SOME variant, otherwise undefined behavior **
