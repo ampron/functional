@@ -124,6 +124,7 @@ public:
 
   bool is_ok() const;
   bool is_err() const;
+  explicit operator bool() const { return is_ok(); }
 
   auto as_ptr() -> ok_value_t*;
   auto as_ptr() const -> const ok_value_t*;
