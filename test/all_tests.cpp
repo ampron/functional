@@ -304,6 +304,20 @@ TEST(OptionTest, map) {
 }
 
 //------------------------------------------------------------------------------
+TEST(OptionTest, map_ref) {
+  auto xs = example_vector();
+  auto& xs_ref =
+    fun::some_ref(xs).map([](auto& vec) -> decltype(vec)& {
+      vec.push_back(7.0);
+      return vec;
+    })
+    .unwrap();
+
+  ASSERT_EQ(xs.size(), example_vector().size() + 1);
+  ASSERT_EQ(xs, xs_ref);
+}
+
+//------------------------------------------------------------------------------
 TEST(OptionTest, map_void) {
   using std::vector;
 
@@ -520,7 +534,7 @@ TEST(ResultTest, result_reference_convertion_into_option) {
   ASSERT_TRUE(bad_result.is_err());
 
   ASSERT_EQ(bad_result.as_ref().err().unwrap(), msg);
-  
+
   Monolith obj(1);
 
   const auto ok_result = fun::ok_ref<int>(obj);
