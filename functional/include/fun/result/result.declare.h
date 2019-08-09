@@ -71,8 +71,8 @@ class Result {
 public:
   using self_t = Result<T, E>;
 
-  using ok_value_t = std::remove_reference_t<T>;
-  using err_value_t = std::remove_reference_t<E>;
+  using value_t = std::remove_reference_t<T>;
+  using error_t = std::remove_reference_t<E>;
 
 private:
   enum { Ok, Err } _variant;
@@ -118,7 +118,7 @@ public:
   Result(MakeResultArgs<Tag, Args...>&& make_args)
     : Result(Tag{}, make_args.tup, std::index_sequence_for<Args...>{})
   {}
-  
+
   auto operator=(const MakeOkResult<T>&) -> self_t&;
   auto operator=(const MakeErrResult<E>&) -> self_t&;
 
@@ -126,10 +126,10 @@ public:
   bool is_err() const;
   explicit operator bool() const { return is_ok(); }
 
-  auto as_ptr() -> ok_value_t*;
-  auto as_ptr() const -> const ok_value_t*;
-  auto as_err_ptr() -> err_value_t*;
-  auto as_err_ptr() const -> const err_value_t*;
+  auto as_ptr() -> value_t*;
+  auto as_ptr() const -> const value_t*;
+  auto as_err_ptr() -> error_t*;
+  auto as_err_ptr() const -> const error_t*;
 
   bool operator==(const self_t& other) const;
   bool operator!=(const self_t& other) const;
@@ -155,11 +155,11 @@ public:
 
   auto unwrap_err() && -> E;
 
-  auto as_ref() -> Result<ok_value_t&, err_value_t&>;
+  auto as_ref() -> Result<value_t&, error_t&>;
 
-  auto as_ref() const -> Result<const ok_value_t&, const err_value_t&>;
+  auto as_ref() const -> Result<const value_t&, const error_t&>;
 
-  auto as_cref() const -> Result<const ok_value_t&, const err_value_t&>;
+  auto as_cref() const -> Result<const value_t&, const error_t&>;
 
   auto ok() && -> Option<T>;
   auto err() && -> Option<E>;
@@ -183,13 +183,13 @@ public:
   auto map_err(F func) && -> ErrMapReturn<F>;
 
   template <class F>
-  using AndThenReturn = Result<typename ResultOf_t<F(T)>::ok_value_t, E>;
+  using AndThenReturn = Result<typename ResultOf_t<F(T)>::value_t, E>;
 
   template <typename F /* T -> Result<U, E> */>
   auto and_then(F func) && -> AndThenReturn<F>;
 
   template <class F>
-  using OrElseReturn = Result<T, typename ResultOf_t<F(T)>::err_value_t>;
+  using OrElseReturn = Result<T, typename ResultOf_t<F(T)>::error_t>;
 
   template <typename F>
   auto or_else(F alt_func) && -> OrElseReturn<F>;

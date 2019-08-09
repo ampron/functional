@@ -194,19 +194,19 @@ auto Result<T, E>::is_err() const -> bool { return !is_ok(); }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_ptr() -> ok_value_t* { return is_ok() ? &_ok.val() : nullptr; }
+auto Result<T, E>::as_ptr() -> value_t* { return is_ok() ? &_ok.val() : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_ptr() const -> const ok_value_t* { return is_ok() ? &_ok.val() : nullptr; }
+auto Result<T, E>::as_ptr() const -> const value_t* { return is_ok() ? &_ok.val() : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_err_ptr() -> err_value_t* { return is_err() ? &_err.val() : nullptr; }
+auto Result<T, E>::as_err_ptr() -> error_t* { return is_err() ? &_err.val() : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_err_ptr() const -> const err_value_t* { return is_err() ? &_err.val() : nullptr; }
+auto Result<T, E>::as_err_ptr() const -> const error_t* { return is_err() ? &_err.val() : nullptr; }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
@@ -249,21 +249,21 @@ auto Result<T, E>::unwrap_err() && -> E { return dump_err(); }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_ref() -> Result<ok_value_t&, err_value_t&> {
+auto Result<T, E>::as_ref() -> Result<value_t&, error_t&> {
   if (is_ok()) { return { OkTag{}, ForwardArgs{}, _ok.val() }; }
   else         { return { ErrTag{}, ForwardArgs{}, _err.val() }; }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_ref() const -> Result<const ok_value_t&, const err_value_t&> {
+auto Result<T, E>::as_ref() const -> Result<const value_t&, const error_t&> {
   if (is_ok()) { return { OkTag{}, ForwardArgs{}, _ok.val() }; }
   else         { return { ErrTag{}, ForwardArgs{}, _err.val() }; }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
-auto Result<T, E>::as_cref() const -> Result<const ok_value_t&, const err_value_t&> {
+auto Result<T, E>::as_cref() const -> Result<const value_t&, const error_t&> {
   return as_ref();
 }
 
