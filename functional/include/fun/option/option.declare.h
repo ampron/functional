@@ -19,6 +19,10 @@ namespace fun {
 
 template <typename T> class Option;
 
+struct NothingTag{};
+
+inline auto nothing() -> NothingTag { return {}; }
+
 auto some() -> Option<Unit>;
 
 template<typename T>
@@ -38,7 +42,7 @@ auto some_ref(T& x) -> Option<T&>;
 
 template <typename T, typename E> class Result;
 
-struct SomeTag {};
+struct SomeTag{};
 
 template <class ...Args>
 struct MakeOptionArgs { std::tuple<Args...> tup; };
@@ -100,6 +104,8 @@ public:
   //! Default constructor is to the None value
   //!
   Option() = default;
+  
+  Option(NothingTag) : Option() {}
 
   explicit Option(T x) : _inner(std::move(x)) {}
 
