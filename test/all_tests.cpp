@@ -409,28 +409,6 @@ TEST(OptionTest, expect) {
 }
 
 //------------------------------------------------------------------------------
-TEST(OptionTest, try_unwrap) {
-  using std::vector;
-
-  const auto foo(fun::Option<int> n, fun::Option<int> d) -> fun::Option<int>
-  {
-    auto numerator = TRY_UNWRAP(n);
-    auto deno = fun::Unwrapped<decltype(d)::
-  }
-
-  auto xs = example_vector();
-  auto last = fun::some(&xs).and_then(
-    [](vector<double>& vec) {
-      vec.push_back(7.0);
-      return fun::some(7.0);
-    }
-  );
-
-  ASSERT_EQ(xs.size(), example_vector().size() + 1);
-  ASSERT_EQ(last.clone().unwrap(), 7.);
-}
-
-//------------------------------------------------------------------------------
 TEST(ResultTest, construction) {
   const auto x = fun::ok<std::string>(3);
   ASSERT_EQ(x.clone().unwrap(), 3);
