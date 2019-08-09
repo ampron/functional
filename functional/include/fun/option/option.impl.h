@@ -180,7 +180,6 @@ template <typename ...Args>
 auto Option<T>::emplace(Args&& ...args) -> self_t&
 {
   _inner.emplace(std::forward<Args>(args)...);
-  is_some();
   return *this;
 }
 
@@ -211,8 +210,6 @@ template<typename T>
 T Option<T>::unwrap_or(T alt)
 {
   return is_some() ? unwrap() : std::move(alt);
-  // if (is_some()) { return _inner.unwrap(); }
-  // else { return std::move(alt); }
 }
 
 //------------------------------------------------------------------------------
