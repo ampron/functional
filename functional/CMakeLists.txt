@@ -17,6 +17,7 @@ set(PUBLIC_HEADERS
     include/fun/result/result.impl.h
     include/fun/pipe.h
     include/fun/type_support.h
+    include/fun/try.h
 )
 
 add_library(functional INTERFACE)

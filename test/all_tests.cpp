@@ -1,10 +1,12 @@
 
 #include <memory>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include <fun/pipe.h>
 #include <fun/result.h>
+#include <fun/try.h>
 #include <gtest/gtest.h>
 
 #include "testing.h"
@@ -327,7 +329,7 @@ TEST(OptionTest, map_void) {
   );
 
   ASSERT_EQ(xs.size(), example_vector().size() + 1);
-  
+
   const auto ys = example_vector();
   size_t n = 0;
   fun::some(ys).map(
@@ -530,6 +532,56 @@ TEST(ResultTest, result_reference_convertion_into_option) {
   ASSERT_TRUE(ok_result.is_ok());
 
   ASSERT_EQ(ok_result.as_ref().ok().unwrap(), obj);
+}
+
+//------------------------------------------------------------------------------
+TEST(TryTest, try_declare_option) {
+  const auto int_to_float =
+    [](fun::Option<int> opt) -> fun::Option<float> {
+      FUN_TRY_DECLARE(int_val, std::move(opt));
+      return fun::make_some(int_val);
+    };
+
+  EXPECT_EQ(int_to_float(fun::some(3)), fun::some(3.0f));
+  EXPECT_EQ(int_to_float(fun::Option<int>()), fun::Option<float>());
+}
+
+//------------------------------------------------------------------------------
+TEST(TryTest, try_assign_option) {
+  const auto int_to_float =
+    [](fun::Option<int> opt) -> fun::Option<float> {
+      auto int_val = 0;
+      FUN_TRY_ASSIGN(int_val, std::move(opt));
+      return fun::make_some(int_val);
+    };
+
+  EXPECT_EQ(int_to_float(fun::some(3)), fun::some(3.0f));
+  EXPECT_EQ(int_to_float(fun::Option<int>()), fun::Option<float>());
+}
+
+//------------------------------------------------------------------------------
+TEST(TryTest, try_declare_result) {
+  const auto int_to_float =
+    [](fun::Result<int, std::string> res) -> fun::Result<float, std::string> {
+      FUN_TRY_DECLARE(int_val, std::move(res));
+      return fun::make_ok(int_val);
+    };
+
+  EXPECT_EQ(int_to_float(fun::make_ok(3)), fun::ok<std::string>(3.f));
+  EXPECT_EQ(int_to_float(fun::make_err("error")), fun::err<float>(std::string("error")));
+}
+
+//------------------------------------------------------------------------------
+TEST(TryTest, try_assign_result) {
+  const auto int_to_float =
+    [](fun::Result<int, std::string> res) -> fun::Result<float, std::string> {
+      auto int_val = 0;
+      FUN_TRY_ASSIGN(int_val, std::move(res));
+      return fun::make_ok(int_val);
+    };
+
+  EXPECT_EQ(int_to_float(fun::make_ok(3)), fun::ok<std::string>(3.f));
+  EXPECT_EQ(int_to_float(fun::make_err("error")), fun::err<float>(std::string("error")));
 }
 
 //------------------------------------------------------------------------------
