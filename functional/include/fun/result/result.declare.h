@@ -177,7 +177,7 @@ public:
   auto map(F func) && -> MapReturn<F>;
 
   template <class F>
-  using ErrMapReturn = Result<T, ResultOf_t<F(T)>>;
+  using ErrMapReturn = Result<T, ResultOf_t<F(E)>>;
 
   template <typename F>
   auto map_err(F func) && -> ErrMapReturn<F>;
