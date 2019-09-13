@@ -79,18 +79,14 @@ auto err_ref(E& val) -> Result<T, E&> {
 template <class T, class E>
 auto Result<T, E>::dump_ok() -> T {
   assert(_variant == Ok);
-  T temp = std::move(_ok).unwrap();
-	_ok.~Sized<T>();
-	return temp;
+  return std::move(_ok).unwrap();
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto Result<T, E>::dump_err() -> E {
   assert(_variant == Err);
-  E temp = std::move(_err).unwrap();
-	_err.~Sized<E>();
-	return temp;
+  return std::move(_err).unwrap();
 }
 
 //------------------------------------------------------------------------------
