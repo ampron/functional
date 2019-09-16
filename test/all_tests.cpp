@@ -70,6 +70,30 @@ public:
 };
 
 //------------------------------------------------------------------------------
+struct DestructionCounter {
+  using Self = DestructionCounter;
+
+  std::reference_wrapper<bool> _multi_dtor;
+  int _destructions = 0;
+
+  ~DestructionCounter() {
+    _destructions += 1;
+    if (1 < _destructions) { _multi_dtor.get() = true; }
+  }
+
+  DestructionCounter(const Self& other) : _multi_dtor(other._multi_dtor) {};
+  auto operator=(const Self& other) -> Self& {
+    if (this == &other) { return *this; }
+    _multi_dtor = other._multi_dtor;
+    _destructions = 0;
+    return *this;
+  }
+
+  explicit DestructionCounter(bool& b) : _multi_dtor(std::ref(b)) {}
+  explicit DestructionCounter(std::reference_wrapper<bool> b) : _multi_dtor(b) {}
+};
+
+//------------------------------------------------------------------------------
 void do_nothing() {}
 
 //------------------------------------------------------------------------------
@@ -92,6 +116,16 @@ TEST(OptionTest, none_constructor) {
 TEST(OptionTest, some_constructor) {
   const fun::Option<int> op(3);
   ASSERT_TRUE(op.is_some());
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, destroy_once) {
+  auto any_multi_dtor = false;
+  {
+    auto y = fun::Option<DestructionCounter>(fun::make_some(any_multi_dtor)).unwrap();
+    ASSERT_FALSE(any_multi_dtor);
+  }
+  ASSERT_FALSE(any_multi_dtor);
 }
 
 //------------------------------------------------------------------------------
@@ -461,6 +495,26 @@ TEST(ResultTest, unwrap_ref) {
     const auto n_ = res.clone().unwrap();
     ASSERT_EQ(n_, n);
   }
+}
+
+//------------------------------------------------------------------------------
+TEST(ResultTest, destroy_once) {
+  auto any_multi_dtor = false;
+  {
+    auto y = fun::Result<DestructionCounter, fun::Unit>(fun::make_ok(any_multi_dtor)).unwrap();
+    ASSERT_FALSE(any_multi_dtor);
+  }
+  ASSERT_FALSE(any_multi_dtor);
+}
+
+//------------------------------------------------------------------------------
+TEST(ResultTest, destroy_err_once) {
+  auto any_multi_dtor = false;
+  {
+    auto y = fun::Result<fun::Unit, DestructionCounter>(fun::make_err(any_multi_dtor)).unwrap_err();
+    ASSERT_FALSE(any_multi_dtor);
+  }
+  ASSERT_FALSE(any_multi_dtor);
 }
 
 //------------------------------------------------------------------------------
