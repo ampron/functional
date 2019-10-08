@@ -191,8 +191,9 @@ auto Option<T>::cloned() const -> Option<value_t>
 }
 //------------------------------------------------------------------------------
 //!
-//! Returns the "Some" value, and sets it's self to "None"
-//! @note This function will segfault if it is called on a "None" Option
+//! Returns the "Some" value
+//! @note This function has undefined behavior if it is called on a "None"
+//!       Option
 //!
 template<typename T>
 T Option<T>::unwrap() { return _inner.unwrap(); }
