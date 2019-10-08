@@ -104,7 +104,7 @@ public:
   //! Default constructor is to the None value
   //!
   Option() = default;
-  
+
   Option(NothingTag) : Option() {}
 
   explicit Option(T x) : _inner(std::move(x)) {}
@@ -219,8 +219,9 @@ public:
   auto cloned() const -> Option<value_t>;
 
   //!
-  //! Returns the "Some" value, and sets it's self_t to "None"
-  //! @note This function will segfault if it is called on a "None" Option
+  //! Returns the "Some" value
+  //! @note This function has undefined behavior if it is called on a "None"
+  //!       Option
   //!
   T unwrap();
 
