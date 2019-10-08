@@ -456,6 +456,16 @@ TEST(OptionTest, expect) {
 }
 
 //------------------------------------------------------------------------------
+TEST(OptionTest, emplace_unit) {
+  auto x = fun::Option<fun::Unit>();
+  EXPECT_TRUE(x.is_none());
+  x.emplace();
+  EXPECT_TRUE(x.is_some());
+  x.emplace(fun::Unit());
+  EXPECT_TRUE(x.is_some());
+}
+
+//------------------------------------------------------------------------------
 TEST(ResultTest, construction) {
   const auto x = fun::ok<std::string>(3);
   ASSERT_EQ(x.clone().unwrap(), 3);
@@ -636,6 +646,16 @@ TEST(TryTest, try_assign_result) {
 
   EXPECT_EQ(int_to_float(fun::make_ok(3)), fun::ok<std::string>(3.f));
   EXPECT_EQ(int_to_float(fun::make_err("error")), fun::err<float>(std::string("error")));
+}
+
+//------------------------------------------------------------------------------
+TEST(LayoutTest, option_sizes) {
+  EXPECT_EQ(sizeof(fun::Option<fun::Unit>), 1);
+  EXPECT_EQ(sizeof(fun::Option<std::is_empty<void>>), 1);
+  EXPECT_EQ(sizeof(fun::Option<std::uint8_t>),  sizeof(std::pair<std::uint8_t, std::uint8_t>));
+  EXPECT_EQ(sizeof(fun::Option<std::uint16_t>), sizeof(std::pair<std::uint8_t, std::uint16_t>));
+  EXPECT_EQ(sizeof(fun::Option<std::uint32_t>), sizeof(std::pair<std::uint8_t, std::uint32_t>));
+  EXPECT_EQ(sizeof(fun::Option<std::uint64_t>), sizeof(std::pair<std::uint8_t, std::uint64_t>));
 }
 
 //------------------------------------------------------------------------------
