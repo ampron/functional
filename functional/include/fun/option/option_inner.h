@@ -102,7 +102,7 @@ struct OptionUnion<T&> {
 
   T& unwrap() { return *_ptr; }
 
-  void emplace(T* ptr) { _ptr = ptr; }
+  void emplace(T& ref) { _ptr = std::addressof(ref); }
 };
 
 //------------------------------------------------------------------------------
