@@ -28,9 +28,6 @@ auto some() -> Option<Unit>;
 template<typename T>
 auto some(T x) -> Option<std::remove_reference_t<T>>;
 
-template<typename T>
-auto some(T* ptr) -> Option<T&>;
-
 template <class T>
 auto some_default() -> Option<T>;
 

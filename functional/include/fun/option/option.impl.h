@@ -24,18 +24,12 @@ auto some(T x) -> Option<typename std::remove_reference<T>::type> {
 }
 
 //------------------------------------------------------------------------------
-template<typename T>
-auto some(T* ptr) -> Option<T&> {
-  return Option<T&>(OptionUnion<T&>(ptr));
-}
-
-//------------------------------------------------------------------------------
 template <class T>
 auto some_default() -> Option<T> { return { Option<T>(ForwardArgs{}) }; }
 
 //------------------------------------------------------------------------------
 template <class T>
-auto some_ref(T& x) -> Option<T&> { return some(&x); }
+auto some_ref(T& x) -> Option<T&> { return Option<T&>(OptionUnion<T&>(x)); }
 
 //------------------------------------------------------------------------------
 // template <typename T, typename ...Args>
