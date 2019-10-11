@@ -94,6 +94,24 @@ struct DestructionCounter {
 };
 
 //------------------------------------------------------------------------------
+class DestructionDetector {
+  using Self = DestructionDetector;
+  bool* _did_destruct;
+public:
+  ~DestructionDetector() {
+    if (_did_destruct) { *_did_destruct = true; }
+  }
+
+  DestructionDetector(): _did_destruct(nullptr) {}
+
+  DestructionDetector(bool& b) : _did_destruct(&b) {}
+
+  DestructionDetector(const DestructionDetector&): _did_destruct(nullptr) {}
+
+  auto operator=(const DestructionDetector&) -> DestructionDetector& = delete;
+};
+
+//------------------------------------------------------------------------------
 void do_nothing() {}
 
 //------------------------------------------------------------------------------
@@ -463,6 +481,69 @@ TEST(OptionTest, emplace_unit) {
   EXPECT_TRUE(x.is_some());
   x.emplace(fun::Unit());
   EXPECT_TRUE(x.is_some());
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, emplace_reference) {
+  auto x = fun::Option<int&>();
+  auto y = 5;
+  EXPECT_TRUE(x.is_none());
+  x.emplace(y);
+  EXPECT_TRUE(x.is_some());
+  EXPECT_EQ(x.unwrap(), y);
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, take) {
+  auto x = fun::some(5);
+  EXPECT_TRUE(x.is_some());
+  EXPECT_EQ(x.take().unwrap(), 5);
+  EXPECT_TRUE(x.is_none());
+
+  auto y = fun::some(fun::Unit());
+  EXPECT_TRUE(y.is_some());
+  y.take();
+  EXPECT_TRUE(y.is_none());
+
+  auto z = fun::some_ref(x);
+  EXPECT_TRUE(z.is_some());
+  EXPECT_EQ(z.take().unwrap(), x);
+  EXPECT_TRUE(z.is_none());
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, destruct_after_move_construct) {
+  auto x_did_destruct = false;
+  auto y = [&]() {
+    auto x = fun::Option<DestructionDetector>(fun::ForwardArgs(), x_did_destruct);
+    return std::move(x);
+  }();
+  EXPECT_TRUE(x_did_destruct);
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, destruct_after_move_assign) {
+  auto x_did_destruct = false;
+  auto y = fun::Option<DestructionDetector>();
+  {
+    auto x = fun::Option<DestructionDetector>(fun::ForwardArgs(), x_did_destruct);
+    y = std::move(x);
+  }
+  EXPECT_TRUE(x_did_destruct);
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, destruct_after_unwrap) {
+  auto did_destruct = false;
+  fun::Option<DestructionDetector>(fun::ForwardArgs(), did_destruct).unwrap();
+  EXPECT_TRUE(did_destruct);
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, destruct_after_take) {
+  auto did_destruct = false;
+  fun::Option<DestructionDetector>(fun::ForwardArgs(), did_destruct).take();
+  EXPECT_TRUE(did_destruct);
 }
 
 //------------------------------------------------------------------------------
