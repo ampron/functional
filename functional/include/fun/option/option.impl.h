@@ -163,10 +163,7 @@ Option<T> Option<T>::take()
 
 //------------------------------------------------------------------------------
 template<typename T>
-Option<T>& Option<T>::push(T obj) {
-  _inner = OptionUnion<T>(obj);
-  return *this;
-}
+Option<T>& Option<T>::push(T obj) { return emplace(std::move(obj)); }
 
 //------------------------------------------------------------------------------
 template <typename T>
