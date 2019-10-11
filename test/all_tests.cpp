@@ -401,7 +401,7 @@ TEST(OptionTest, bind) {
   using std::vector;
 
   auto xs = example_vector();
-  auto last = fun::some(&xs).and_then(
+  auto last = fun::some_ref(xs).and_then(
     [](vector<double>& vec) {
       vec.push_back(7.0);
       return fun::some(7.0);
@@ -417,7 +417,7 @@ TEST(OptionTest, iteration) {
   using std::vector;
 
   auto xs = example_vector();
-  auto maybe_xs = fun::some(&xs);
+  auto maybe_xs = fun::some_ref(xs);
   for (auto& xs : maybe_xs) {
       xs.push_back(7.0);
   }
