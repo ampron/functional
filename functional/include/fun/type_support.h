@@ -10,8 +10,6 @@ namespace fun {
 struct Unit {
   using Self = Unit;
 
-  constexpr Unit() {}
-
   constexpr bool operator==(const Self&) const { return true; }
   constexpr bool operator!=(const Self&) const { return false; }
 };
