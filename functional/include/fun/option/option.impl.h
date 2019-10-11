@@ -158,7 +158,7 @@ Option<T> Option<T>::or_else(F alt_func) &&
 template<typename T>
 Option<T> Option<T>::take()
 {
-  return is_some() ? some(unwrap()) : Option<T>();
+  return is_some() ? Option<T>(ForwardArgs(), unwrap()) : Option<T>();
 }
 
 //------------------------------------------------------------------------------
