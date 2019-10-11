@@ -92,7 +92,7 @@ public:
   Option(const self_t&) = default;
   auto operator=(const self_t&) -> self_t& = default;
 
-  self_t clone() const { return self_t(*this); }
+  auto clone() const -> self_t { return *this; }
 
   explicit Option(OptionUnion<T> mem) : _inner(std::move(mem)) {}
 

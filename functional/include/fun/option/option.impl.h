@@ -3,7 +3,7 @@
 
 //!
 //! @author Alex Pronschinske
-//! @copyright MIT LIcense
+//! @copyright MIT License
 //!
 
 #include <fun/option/option.declare.h>
@@ -13,7 +13,7 @@
 namespace fun {
 
 //==============================================================================
-// Option-releated function definitions
+// Option-related function definitions
 //------------------------------------------------------------------------------
 inline auto some() -> Option<Unit> { return some(Unit{}); }
 
