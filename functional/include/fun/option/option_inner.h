@@ -6,16 +6,16 @@
 namespace fun {
 
 //------------------------------------------------------------------------------
-template <class T, class En = void> struct OptionUnion;
+template <class T, class En = void> class OptionUnion;
 
 //------------------------------------------------------------------------------
 template <class T>
-struct OptionUnion<T, std::enable_if_t<std::is_empty<T>::value>>: private T {
+class OptionUnion<T, std::enable_if_t<std::is_empty<T>::value>>: T {
   using Self = OptionUnion;
 
   enum class Tag: std::uint8_t { NONE, SOME };
   Tag _variant;
-
+public:
   ~OptionUnion() = default;
 
   OptionUnion(const Self&) = default;
@@ -29,15 +29,16 @@ struct OptionUnion<T, std::enable_if_t<std::is_empty<T>::value>>: private T {
 
   Self& operator=(Self&& other) noexcept {
     if (this != &other) {
-      static_cast<T&>(*this) = static_cast<T&&>(other);
       _variant = other._variant;
+      if (_variant) { static_cast<T&>(*this) = static_cast<T&&>(other); }
       other._variant = Tag::NONE;
     }
+    return *this;
   }
 
   Self clone() const { return *this; }
 
-  OptionUnion() : _variant(Tag::NONE) {}
+  OptionUnion() : T(), _variant(Tag::NONE) {}
 
   explicit OptionUnion(T val) : T(std::move(val)), _variant(Tag::SOME) {}
 
@@ -59,40 +60,51 @@ struct OptionUnion<T, std::enable_if_t<std::is_empty<T>::value>>: private T {
     return true;
   }
 
-  T unwrap() { return static_cast<T&&>(*this); }
+  T dump() {
+    _variant = Tag::NONE;
+    return static_cast<T&&>(*this);
+  }
 
   template <class... Args>
   void emplace(Args&&... args) {
-    static_cast<T&>(*this) = T(std::forward<Args>(args)...);
+    // Constructing a temporary and throwing it away mostly replicates the
+    // observable compile-time behavior of a normal emplace().
+    void(T(std::forward<Args>(args)...));
     _variant = Tag::SOME;
   }
-
 };
 
 //------------------------------------------------------------------------------
 template <class T>
-struct OptionUnion<T&> {
+class OptionUnion<T&> {
   using Self = OptionUnion<T&>;
 
   T* _ptr = nullptr;
-
+public:
   ~OptionUnion() = default;
 
   OptionUnion(const Self&) = default;
   Self& operator=(const Self&)  = default;
 
-  Self clone() const { return Self(*this); }
+  Self clone() const { return *this; }
 
-  // For reference type move = copy
-  OptionUnion(Self&& other) = default;
-  Self& operator=(Self&&) = default;
+  OptionUnion(Self&& other) noexcept: _ptr(other._ptr) {
+    other._ptr = nullptr;
+  }
+
+  Self& operator=(Self&& other) noexcept {
+    if (this != &other) {
+      _ptr = other._ptr;
+      other._ptr = nullptr;
+    }
+    return *this;
+  }
 
   OptionUnion() = default;
 
-  explicit OptionUnion(T& obj) : _ptr(&obj) {}
-  explicit OptionUnion(T* ptr) : _ptr(ptr) {}
+  explicit OptionUnion(T& obj) : _ptr(std::addressof(obj)) {}
 
-  OptionUnion(ForwardArgs, T& obj) : _ptr(&obj) {}
+  OptionUnion(ForwardArgs, T& obj) : _ptr(std::addressof(obj)) {}
 
   bool is_some() const { return _ptr ? true : false; }
 
@@ -100,40 +112,53 @@ struct OptionUnion<T&> {
 
   bool operator==(const Self& other) const { return _ptr == other._ptr; }
 
-  T& unwrap() { return *_ptr; }
+  T& dump() {
+    const auto ptr = _ptr;
+    _ptr = nullptr;
+    return *ptr;
+  }
 
   void emplace(T& ref) { _ptr = std::addressof(ref); }
 };
 
 //------------------------------------------------------------------------------
 template <class T, class En>
-struct OptionUnion {
+class OptionUnion {
   using Self = OptionUnion;
 
   enum class Tag: std::uint8_t { NONE, SOME };
   Tag _variant;
+
   union {
     Unit _empty = {};
-    std::remove_const_t<T> _val;
+    T _val;
   };
 
-  ~OptionUnion() {
-    if (_variant == Tag::SOME) { _val.~T(); }
+  void* val_addr() {
+    return static_cast<void*>(std::addressof(_val));
   }
 
+  void erase() {
+    if (is_some()) {
+      _variant = Tag::NONE;
+      _val.~T();
+      _empty = {};
+    }
+  }
+public:
+  ~OptionUnion() { erase(); }
+
   OptionUnion(const Self& other) : _variant(other._variant) {
-    if (_variant == Tag::SOME) { new (&_val) T(other._val); }
+    if (_variant == Tag::SOME) {
+      ::new (val_addr()) T(other._val);
+    }
   }
 
   Self& operator=(const Self& other) {
     if (this != &other) {
-      if (_variant == Tag::SOME) {
-        _variant = Tag::NONE;
-        _val.~T();
-        _empty = {};
-      }
+      erase();
       if (other._variant == Tag::SOME) {
-        new (&_val) T(other._val);
+        ::new (val_addr()) T(other._val);
         _variant = Tag::SOME;
       }
     }
@@ -143,32 +168,36 @@ struct OptionUnion {
   Self clone() const { return *this; }
 
   OptionUnion(Self&& other) noexcept: _variant(other._variant) {
-    if (_variant == Tag::SOME) { new (&_val) T(std::move(other._val)); }
-    other._variant = Tag::NONE;
+    if (_variant == Tag::SOME) {
+      ::new (val_addr()) T(other.dump());
+    }
   }
 
   Self& operator=(Self&& other) noexcept {
     if (this != &other) {
-      if (_variant == Tag::SOME) { _val.~T(); }
-      _variant = other._variant;
-      if (_variant == Tag::SOME) { new (&_val) T(std::move(other._val)); }
-      other._variant = Tag::NONE;
+      erase();
+      if (other._variant == Tag::SOME) {
+        ::new (val_addr()) T(other.dump());
+        _variant = Tag::SOME;
+      }
     }
     return *this;
   }
 
   OptionUnion() : _variant(Tag::NONE) {}
 
-  explicit OptionUnion(T val) : _variant(Tag::SOME), _val(std::move(val)) {}
+  explicit OptionUnion(T val) : _variant(Tag::SOME) {
+    ::new (val_addr()) T(std::move(val));
+  }
 
   template <typename ...Args>
-  explicit OptionUnion(ForwardArgs, Args&& ...args)
-    : _variant(Tag::SOME), _val(std::forward<Args>(args)...)
-  {}
+  explicit OptionUnion(ForwardArgs, Args&& ...args) : _variant(Tag::SOME) {
+    ::new (val_addr()) T(std::forward<Args>(args)...);
+  }
 
   bool is_some() const { return _variant == Tag::SOME; }
 
-  T* as_ptr() { return is_some() ? &_val : nullptr; }
+  T* as_ptr() { return is_some() ? std::addressof(_val) : nullptr; }
 
   bool operator==(const Self& other) const {
     if (is_some()) {
@@ -178,16 +207,22 @@ struct OptionUnion {
     }
   }
 
-  T unwrap() { return std::move(_val); }
+  T dump() {
+    _variant = Tag::NONE;
+    auto val = std::move(_val);
+    _val.~T();
+    _empty = {};
+#if defined(__GNUC__) && __GNUC__ <= 4
+    return std::move(val);
+#else
+    return val;
+#endif
+  }
 
   template <typename ...Args>
   void emplace(Args&& ...args) {
-    if (_variant == Tag::SOME) {
-      _variant = Tag::NONE;
-      _val.~T();
-      _empty = {};
-    }
-    new (&_val) T(std::forward<Args>(args)...);
+    erase();
+    ::new (val_addr()) T(std::forward<Args>(args)...);
     _variant = Tag::SOME;
   }
 };

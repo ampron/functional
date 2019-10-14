@@ -217,8 +217,14 @@ public:
 
   //!
   //! Returns the "Some" value
+  //!
   //! @note This function has undefined behavior if it is called on a "None"
   //!       Option
+  //!
+  //! @note This function leaves the instance on which it is called in an
+  //!       unspecified but valid state. After this function has returned, the
+  //!       behavior of methods other than the destructor and assignment
+  //!       operators is unspecified.
   //!
   T unwrap();
 
