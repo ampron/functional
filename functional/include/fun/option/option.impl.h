@@ -56,7 +56,7 @@ match(SomeFuncT func_some, NoneFuncT func_none) && -> MatchReturn<SomeFuncT>
     , "Some-handling and None-handling functions passed to match do not "
       "have the same return type"
     );
-  return is_some() ? unvoid_call(func_some, unwrap())
+  return is_some() ? unvoid_call(func_some, std::move(*this).unwrap())
                    : unvoid_call(func_none);
 }
 
@@ -89,7 +89,7 @@ template <typename T>
 template <typename E, typename ... Args>
 auto Option<T>::ok_or(E err) && -> Result<T, E>
 {
-  if (is_some()) { return fun::make_ok(unwrap()); }
+  if (is_some()) { return fun::make_ok(std::move(*this).unwrap()); }
   else           { return fun::err(std::move(err)); }
 }
 
@@ -98,7 +98,7 @@ template <typename T>
 template<typename ErrFuncT>
 auto Option<T>::ok_or_else(ErrFuncT err_func) && -> Result<T, ErrorAlternative<ErrFuncT>>
 {
-  if (is_some()) { return fun::make_ok(unwrap()); }
+  if (is_some()) { return fun::make_ok(std::move(*this).unwrap()); }
   else           { return fun::make_err(unvoid_call(err_func)); }
 }
 
@@ -111,7 +111,7 @@ template<typename T>
 template <typename F /* T -> U */>
 auto Option<T>::map(F func) && -> MappedOption<F>
 {
-  if (is_some()) { return make_some(unvoid_call(func, unwrap())); }
+  if (is_some()) { return make_some(unvoid_call(func, std::move(*this).unwrap())); }
   else { return {}; }
 }
 
@@ -120,7 +120,7 @@ template<typename T>
 template <typename U, typename FuncT>
 U Option<T>::map_or(U default_val, FuncT func) &&
 {
-  return is_some() ? unvoid_call(func, unwrap()) : std::move(default_val);
+  return is_some() ? unvoid_call(func, std::move(*this).unwrap()) : std::move(default_val);
 }
 
 //------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ template <typename DefaultFunc, typename F>
 auto Option<T>::
 map_or_else(DefaultFunc default_func, F func) && -> MappedOption<F>
 {
-  return is_some() ? unvoid_call(func, unwrap()) : unvoid_call(default_func);
+  return is_some() ? unvoid_call(func, std::move(*this).unwrap()) : unvoid_call(default_func);
 }
 
 //------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ template<typename T>
 template <typename F /* T -> Option<U> */>
 auto Option<T>::and_then(F func) && -> ValBoundOption<F>
 {
-  if (is_some()) { return unvoid_call(func, unwrap()); }
+  if (is_some()) { return unvoid_call(func, std::move(*this).unwrap()); }
   else           { return {}; }
 }
 
@@ -151,7 +151,7 @@ template<typename T>
 template <typename F /* () -> Option<T> */>
 Option<T> Option<T>::or_else(F alt_func) &&
 {
-  return is_some() ? some(unwrap()) : unvoid_call(alt_func);
+  return is_some() ? some(std::move(*this).unwrap()) : unvoid_call(alt_func);
 }
 
 //------------------------------------------------------------------------------
@@ -183,29 +183,29 @@ auto Option<T>::cloned() const -> Option<value_t>
 
 //------------------------------------------------------------------------------
 template<typename T>
-T Option<T>::unwrap() { return _inner.dump(); }
+T Option<T>::unwrap() && { return _inner.dump(); }
 
 //------------------------------------------------------------------------------
 template<typename T>
-T Option<T>::expect(const char* err_msg)
+T Option<T>::expect(const char* err_msg) &&
 {
-  if (is_some()) { return unwrap(); }
+  if (is_some()) { return std::move(*this).unwrap(); }
   else           { throw std::runtime_error(err_msg); }
 }
 
 //------------------------------------------------------------------------------
 template<typename T>
-T Option<T>::unwrap_or(T alt)
+T Option<T>::unwrap_or(T alt) &&
 {
-  return is_some() ? unwrap() : std::move(alt);
+  return is_some() ? std::move(*this).unwrap() : std::move(alt);
 }
 
 //------------------------------------------------------------------------------
 template <class T>
 template <class F>
-T Option<T>::unwrap_or_else(F alt_func)
+T Option<T>::unwrap_or_else(F alt_func) &&
 {
-  return is_some() ? unwrap() : unvoid_call(alt_func);
+  return is_some() ? std::move(*this).unwrap() : unvoid_call(alt_func);
 }
 
 //------------------------------------------------------------------------------
