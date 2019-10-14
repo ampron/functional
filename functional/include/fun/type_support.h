@@ -98,6 +98,13 @@ auto unvoid_call( F f, Args&& ...args
   return uv(f, std::forward<Args>(args)...);
 }
 
+//------------------------------------------------------------------------------
+template <class T, class... Args>
+auto construct_at(T* location, Args&&... args) -> T& {
+  ::new (static_cast<void*>(location)) T(std::forward<Args>(args)...);
+  return *location;
+}
+
 }
 
 #endif

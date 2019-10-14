@@ -134,10 +134,6 @@ class OptionUnion {
     T _val;
   };
 
-  void* val_addr() {
-    return static_cast<void*>(std::addressof(_val));
-  }
-
   void erase() {
     if (is_some()) {
       _variant = Tag::NONE;
@@ -150,7 +146,7 @@ public:
 
   OptionUnion(const Self& other) : _variant(other._variant) {
     if (_variant == Tag::SOME) {
-      ::new (val_addr()) T(other._val);
+      construct_at(std::addressof(_val), other._val);
     }
   }
 
@@ -158,7 +154,7 @@ public:
     if (this != &other) {
       erase();
       if (other._variant == Tag::SOME) {
-        ::new (val_addr()) T(other._val);
+        construct_at(std::addressof(_val), other._val);
         _variant = Tag::SOME;
       }
     }
@@ -169,7 +165,7 @@ public:
 
   OptionUnion(Self&& other) noexcept: _variant(other._variant) {
     if (_variant == Tag::SOME) {
-      ::new (val_addr()) T(other.dump());
+      construct_at(std::addressof(_val), other.dump());
     }
   }
 
@@ -177,7 +173,7 @@ public:
     if (this != &other) {
       erase();
       if (other._variant == Tag::SOME) {
-        ::new (val_addr()) T(other.dump());
+        construct_at(std::addressof(_val), other.dump());
         _variant = Tag::SOME;
       }
     }
@@ -187,12 +183,12 @@ public:
   OptionUnion() : _variant(Tag::NONE) {}
 
   explicit OptionUnion(T val) : _variant(Tag::SOME) {
-    ::new (val_addr()) T(std::move(val));
+    construct_at(std::addressof(_val), std::move(val));
   }
 
   template <typename ...Args>
   explicit OptionUnion(ForwardArgs, Args&& ...args) : _variant(Tag::SOME) {
-    ::new (val_addr()) T(std::forward<Args>(args)...);
+    construct_at(std::addressof(_val), std::forward<Args>(args)...);
   }
 
   bool is_some() const { return _variant == Tag::SOME; }
@@ -222,7 +218,7 @@ public:
   template <typename ...Args>
   void emplace(Args&& ...args) {
     erase();
-    ::new (val_addr()) T(std::forward<Args>(args)...);
+    construct_at(std::addressof(_val), std::forward<Args>(args)...);
     _variant = Tag::SOME;
   }
 };
