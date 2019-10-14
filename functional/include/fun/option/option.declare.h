@@ -226,14 +226,14 @@ public:
   //!       behavior of methods other than the destructor and assignment
   //!       operators is unspecified.
   //!
-  T unwrap();
+  T unwrap() &&;
 
-  T expect(const char* err_msg);
+  T expect(const char* err_msg) &&;
 
-  T unwrap_or(T alt);
+  T unwrap_or(T alt) &&;
 
   template <class F>
-  T unwrap_or_else(F alt_func);
+  T unwrap_or_else(F alt_func) &&;
 
   // Iterators
   //----------

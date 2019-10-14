@@ -490,7 +490,7 @@ TEST(OptionTest, emplace_reference) {
   EXPECT_TRUE(x.is_none());
   x.emplace(y);
   EXPECT_TRUE(x.is_some());
-  EXPECT_EQ(x.unwrap(), y);
+  EXPECT_EQ(std::move(x).unwrap(), y);
 }
 
 //------------------------------------------------------------------------------
