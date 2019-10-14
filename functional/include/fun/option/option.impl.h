@@ -158,7 +158,7 @@ Option<T> Option<T>::or_else(F alt_func) &&
 template<typename T>
 Option<T> Option<T>::take()
 {
-  return is_some() ? Option<T>(ForwardArgs(), unwrap()) : Option<T>();
+  return is_some() ? Option<T>(ForwardArgs(), _inner.dump()) : Option<T>();
 }
 
 //------------------------------------------------------------------------------
@@ -180,14 +180,10 @@ auto Option<T>::cloned() const -> Option<value_t>
   if (is_some()) { return Option<value_t>(clone().unwrap()); }
   else           { return {}; }
 }
+
 //------------------------------------------------------------------------------
-//!
-//! Returns the "Some" value
-//! @note This function has undefined behavior if it is called on a "None"
-//!       Option
-//!
 template<typename T>
-T Option<T>::unwrap() { return _inner.unwrap(); }
+T Option<T>::unwrap() { return _inner.dump(); }
 
 //------------------------------------------------------------------------------
 template<typename T>
