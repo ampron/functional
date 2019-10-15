@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-project(Functional VERSION 0.10.4)
+project(Functional VERSION 0.11.0)
 
 set(CMAKE_CXX_STANDARD 14)
 
