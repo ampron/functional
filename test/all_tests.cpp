@@ -547,6 +547,19 @@ TEST(OptionTest, destruct_after_take) {
 }
 
 //------------------------------------------------------------------------------
+TEST(OptionTest, empty_base) {
+  auto op1 = fun::some(fun::Unit());
+  EXPECT_TRUE(op1.is_some());
+  fun::Option<fun::Unit> op2 {};
+  EXPECT_TRUE(op2.is_none());
+  op2 = std::move(op1);
+  EXPECT_TRUE(op2.is_some());
+  EXPECT_TRUE(op1.is_none());
+  op1.emplace(fun::Unit());
+  EXPECT_TRUE(op1 == op2);
+}
+
+//------------------------------------------------------------------------------
 TEST(ResultTest, construction) {
   const auto x = fun::ok<std::string>(3);
   ASSERT_EQ(x.clone().unwrap(), 3);
