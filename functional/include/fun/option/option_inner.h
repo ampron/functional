@@ -30,7 +30,7 @@ public:
   Self& operator=(Self&& other) noexcept {
     if (this != &other) {
       _variant = other._variant;
-      if (_variant) { static_cast<T&>(*this) = static_cast<T&&>(other); }
+      if (_variant == Tag::SOME) { T::operator=(static_cast<T&&>(other)); }
       other._variant = Tag::NONE;
     }
     return *this;
