@@ -151,7 +151,7 @@ template<typename T>
 template <typename F /* () -> Option<T> */>
 Option<T> Option<T>::or_else(F alt_func) &&
 {
-  return is_some() ? some(std::move(*this).unwrap()) : unvoid_call(alt_func);
+  return is_some() ? make_some(std::move(*this).unwrap()) : unvoid_call(alt_func);
 }
 
 //------------------------------------------------------------------------------
