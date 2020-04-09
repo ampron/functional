@@ -682,6 +682,25 @@ TEST(ResultTest, and_then) {
   ASSERT_EQ(xs.size(), example_vector().size() + 1);
   ASSERT_EQ(last.clone().unwrap(), 7.);
 }
+
+//------------------------------------------------------------------------------
+TEST(ResultTest, or_else) {
+  using ok_t = double;
+  using error_t = std::pair<int, std::string>;
+
+  fun::Result<ok_t, error_t> x = fun::err(error_t(-1, "fail"));
+  auto last = x.clone().or_else(
+    [](error_t e) -> fun::Result<ok_t, error_t> {
+      if (e.first == -1) { return fun::ok(100.); }
+      else               { return fun::err(e);   }
+    }
+  );
+
+  ASSERT_TRUE(last.is_ok());
+  ASSERT_EQ(last.clone().unwrap(), 100.);
+}
+
+//------------------------------------------------------------------------------
 TEST(ResultTest, into_option) {
   using std::string;
   using std::unique_ptr;
