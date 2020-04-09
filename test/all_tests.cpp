@@ -431,6 +431,17 @@ TEST(OptionTest, bind) {
 }
 
 //------------------------------------------------------------------------------
+TEST(OptionTest, filter) {
+  auto maybe_xs = fun::some(example_vector());
+
+  auto maybe_ys = maybe_xs.clone().filter([](const auto& xs) { return 1 < xs.size(); });
+  ASSERT_TRUE(maybe_ys.is_some());
+
+  auto maybe_zs = maybe_xs.clone().filter([](const auto& xs) { return 100 < xs.size(); });
+  ASSERT_TRUE(maybe_zs.is_none());
+}
+
+//------------------------------------------------------------------------------
 TEST(OptionTest, iteration) {
   using std::vector;
 
