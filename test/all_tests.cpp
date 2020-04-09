@@ -650,6 +650,38 @@ TEST(ResultTest, equality) {
 }
 
 //------------------------------------------------------------------------------
+TEST(ResultTest, map) {
+  using std::vector;
+  using error_t = int;
+
+  const auto xs = fun::ok<error_t>(example_vector())
+    .map(
+      [](vector<double> vec) {
+        vec.push_back(7.0);
+        return vec;
+      }
+    )
+    .unwrap();
+
+  ASSERT_EQ(xs.size(), example_vector().size() + 1);
+}
+
+//------------------------------------------------------------------------------
+TEST(ResultTest, and_then) {
+  using std::vector;
+  using error_t = int;
+
+  auto xs = example_vector();
+  auto last = fun::ok_ref<error_t>(xs).and_then(
+    [](vector<double>& vec) {
+      vec.push_back(7.0);
+      return fun::ok<error_t>(7.0);
+    }
+  );
+
+  ASSERT_EQ(xs.size(), example_vector().size() + 1);
+  ASSERT_EQ(last.clone().unwrap(), 7.);
+}
 TEST(ResultTest, into_option) {
   using std::string;
   using std::unique_ptr;
