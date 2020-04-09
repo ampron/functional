@@ -193,7 +193,7 @@ public:
   auto and_then(F func) && -> AndThenReturn<F>;
 
   template <class F>
-  using OrElseReturn = Result<T, typename ResultOf_t<F(T)>::error_t>;
+  using OrElseReturn = Result<T, typename ResultOf_t<F(E)>::error_t>;
 
   template <typename F>
   auto or_else(F alt_func) && -> OrElseReturn<F>;
