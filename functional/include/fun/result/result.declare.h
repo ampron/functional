@@ -128,8 +128,10 @@ public:
 
   auto as_ptr() -> value_t*;
   auto as_ptr() const -> const value_t*;
+  auto as_const_ptr() const -> const value_t* { return as_ptr(); }
   auto as_err_ptr() -> error_t*;
   auto as_err_ptr() const -> const error_t*;
+  auto as_const_err_ptr() const -> const error_t* { return as_err_ptr(); }
 
   bool operator==(const self_t& other) const;
   bool operator!=(const self_t& other) const;
