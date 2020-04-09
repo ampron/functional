@@ -459,6 +459,12 @@ TEST(OptionTest, unwrap_or) {
 }
 
 //------------------------------------------------------------------------------
+TEST(OptionTest, unwrap_or_default) {
+  auto empty_str = fun::Option<std::string>().unwrap_or_default();
+  ASSERT_TRUE(empty_str.empty());
+}
+
+//------------------------------------------------------------------------------
 TEST(OptionTest, equality) {
   const auto x = fun::some(2);
   const auto y = fun::some(2);
@@ -580,6 +586,12 @@ TEST(ResultTest, construction) {
 TEST(ResultTest, unwrap) {
   auto p = fun::ok<std::string>(example_unique_one()).unwrap();
   ASSERT_TRUE(p.get());
+}
+
+//------------------------------------------------------------------------------
+TEST(ResultTest, unwrap_or_default) {
+  auto empty_str = fun::err<std::string>(0).unwrap_or_default();
+  ASSERT_TRUE(empty_str.empty());
 }
 
 //------------------------------------------------------------------------------

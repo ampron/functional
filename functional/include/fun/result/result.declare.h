@@ -153,6 +153,10 @@ public:
   template <class F>
   auto unwrap_or_else(F alt_func) && -> T;
 
+  auto unwrap_or_default() && -> T {
+    return std::move(*this).unwrap_or_else([](auto&&) -> T { return {}; });
+  }
+
   auto unwrap_err() && -> E;
 
   auto as_ref() -> Result<value_t&, error_t&>;

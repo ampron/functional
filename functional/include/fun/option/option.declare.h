@@ -235,6 +235,10 @@ public:
   template <class F>
   T unwrap_or_else(F alt_func) &&;
 
+  auto unwrap_or_default() && -> T {
+    return std::move(*this).unwrap_or_else([]() -> T { return {}; });
+  }
+
   // Iterators
   //----------
   class ConstIter {
