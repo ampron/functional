@@ -34,9 +34,6 @@ auto some_default() -> Option<T>;
 template <class T>
 auto some_ref(T& x) -> Option<T&>;
 
-// template <typename T, typename ...Args>
-// auto make_some(Args&& ...args) -> Option<T>;
-
 template <typename T, typename E> class Result;
 
 struct SomeTag{};

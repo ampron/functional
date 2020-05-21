@@ -31,12 +31,6 @@ auto some_default() -> Option<T> { return { Option<T>(ForwardArgs{}) }; }
 template <class T>
 auto some_ref(T& x) -> Option<T&> { return Option<T&>(OptionUnion<T&>(x)); }
 
-//------------------------------------------------------------------------------
-// template <typename T, typename ...Args>
-// auto make_some(Args&& ...args) -> Option<T> {
-//   return Option<T>(ForwardArgs{}, std::forward<Args>(args)...);
-// }
-
 //==============================================================================
 // Option definitions
 //------------------------------------------------------------------------------
