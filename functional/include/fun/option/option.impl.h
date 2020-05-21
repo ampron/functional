@@ -105,7 +105,7 @@ template<typename T>
 template <typename F /* T -> U */>
 auto Option<T>::map(F func) && -> MappedOption<F>
 {
-  if (is_some()) { return make_some(unvoid_call(func, std::move(*this).unwrap())); }
+  if (is_some()) { return fun::make_some(unvoid_call(func, std::move(*this).unwrap())); }
   else { return {}; }
 }
 
@@ -145,7 +145,7 @@ template<typename T>
 template <typename F /* () -> Option<T> */>
 Option<T> Option<T>::or_else(F alt_func) &&
 {
-  return is_some() ? make_some(std::move(*this).unwrap()) : unvoid_call(alt_func);
+  return is_some() ? fun::make_some(std::move(*this).unwrap()) : unvoid_call(alt_func);
 }
 
 //------------------------------------------------------------------------------
