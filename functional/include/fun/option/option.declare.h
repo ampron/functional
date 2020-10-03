@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <cassert>
 #include <ostream>
+#include <utility>
 
 #include <fun/option/option_inner.h>
 
@@ -188,6 +189,9 @@ public:
 
   template <typename DefaultFunc, typename F>
   auto map_or_else(DefaultFunc, F) && -> MappedOption<F>;
+
+  template <typename U>
+  auto zip(Option<U>) && -> Option<std::pair<T, U>>;
 
   template <class F>
   using ValBoundOption = Option<typename ResultOf_t<F(T)>::Inner>;

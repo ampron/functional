@@ -415,6 +415,31 @@ TEST(OptionTest, map_or) {
 }
 
 //------------------------------------------------------------------------------
+TEST(OptionTest, zip) {
+  const auto sum_pair = [](auto xy) { return xy.first + xy.second; };
+  {
+    const auto sum =
+      fun::some(1).zip(fun::some(1.)).map(sum_pair).unwrap_or(0);
+    ASSERT_EQ(sum, 2);
+  }
+  {
+    const auto sum =
+      fun::some(1).zip(fun::Option<double>()).map(sum_pair).unwrap_or(0);
+    ASSERT_EQ(sum, 0);
+  }
+  {
+    const auto sum =
+      fun::Option<int>().zip(fun::some(1.)).map(sum_pair).unwrap_or(0);
+    ASSERT_EQ(sum, 0);
+  }
+  {
+    const auto sum =
+      fun::Option<int>().zip(fun::Option<double>()).map(sum_pair).unwrap_or(0);
+    ASSERT_EQ(sum, 0);
+  }
+}
+
+//------------------------------------------------------------------------------
 TEST(OptionTest, bind) {
   using std::vector;
 
@@ -675,6 +700,36 @@ TEST(ResultTest, map) {
     .unwrap();
 
   ASSERT_EQ(xs.size(), example_vector().size() + 1);
+}
+
+//------------------------------------------------------------------------------
+TEST(ResultTest, zip) {
+  using E = std::string;
+  template <class T> using Result = fun::Result<T, E>;
+  const auto sum_pair = [](auto xy) { return xy.first + xy.second; };
+  {
+    const auto sum =
+      fun::ok<E>(1).zip(fun::ok<E>(1.)).map(sum_pair).unwrap_or(0);
+    ASSERT_EQ(sum, 2);
+  }
+  {
+    const auto e =
+      fun::ok<E>(1).zip(fun::err<double, E>("a")).map(sum_pair)
+      err().unwrap_or("");
+    ASSERT_EQ(e, "a");
+  }
+  {
+    const auto e =
+      fun::err<int, E>("a").zip(fun::ok<E>(1.)).map(sum_pair)
+      err().unwrap_or("");
+    ASSERT_EQ(e, "a");
+  }
+  {
+    const auto e =
+      fun::err<int, E>("a").zip(fun::err<double, E>("b")).map(sum_pair)
+      err().unwrap_or("");
+    ASSERT_EQ(e, "a");
+  }
 }
 
 //------------------------------------------------------------------------------

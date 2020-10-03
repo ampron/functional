@@ -127,6 +127,19 @@ map_or_else(DefaultFunc default_func, F func) && -> MappedOption<F>
 }
 
 //------------------------------------------------------------------------------
+template <typename T>
+template <typename U>
+auto Option<T>::
+zip(Option<U> other) && -> Option<std::pair<T, U>>
+{
+  if (this->is_some() && other.is_some()) {
+    return fun::make_some(std::move(*this).unwrap(), std::move(other).unwrap());
+  } else {
+    return {};
+  }
+}
+
+//------------------------------------------------------------------------------
 //!
 //! Returns a "None" variant if the Option object is "None", otherwise
 //! it calls the input function with the contained value of type T and
