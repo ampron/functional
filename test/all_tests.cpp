@@ -149,43 +149,43 @@ TEST(OptionTest, destroy_once) {
 //------------------------------------------------------------------------------
 TEST(OptionTest, move_assignment_with_cry_baby) {
   const auto cry_baby = std::make_shared<CryBaby>();
-  ASSERT_TRUE(cry_baby.unique());
+  ASSERT_EQ(cry_baby.use_count(), 1);
   {
     auto maybe_baby = fun::Option<std::shared_ptr<CryBaby>>();
     ASSERT_TRUE(maybe_baby.is_none());
 
     maybe_baby = fun::Option<std::shared_ptr<CryBaby>>(cry_baby);
     ASSERT_TRUE(maybe_baby.is_some());
-    ASSERT_FALSE(cry_baby.unique());
+    ASSERT_EQ(cry_baby.use_count(), 1);
 
     maybe_baby = fun::Option<std::shared_ptr<CryBaby>>(std::make_shared<CryBaby>());
     ASSERT_TRUE(maybe_baby.is_some());
-    ASSERT_TRUE(cry_baby.unique());
+    ASSERT_EQ(cry_baby.use_count(), 1);
   }
 
-  ASSERT_TRUE(cry_baby.unique());
+  ASSERT_EQ(cry_baby.use_count(), 1);
   cry_baby->cry();
 }
 
 //------------------------------------------------------------------------------
 TEST(OptionTest, copy_assignment_with_cry_baby) {
   const auto cry_baby = std::make_shared<CryBaby>();
-  ASSERT_TRUE(cry_baby.unique());
+  ASSERT_EQ(cry_baby.use_count(), 1);
   {
     fun::Option<std::shared_ptr<CryBaby>> maybe_baby{};
     ASSERT_TRUE(maybe_baby.is_none());
 
     maybe_baby = fun::Option<std::shared_ptr<CryBaby>>(cry_baby);
     ASSERT_TRUE(maybe_baby.is_some());
-    ASSERT_FALSE(cry_baby.unique());
+    ASSERT_EQ(cry_baby.use_count(), 1);
 
     const fun::Option<std::shared_ptr<CryBaby>> other_maybe_baby{std::make_shared<CryBaby>()};
     maybe_baby = other_maybe_baby;
     ASSERT_TRUE(maybe_baby.is_some());
-    ASSERT_TRUE(cry_baby.unique());
+    ASSERT_EQ(cry_baby.use_count(), 1);
   }
 
-  ASSERT_TRUE(cry_baby.unique());
+  ASSERT_EQ(cry_baby.use_count(), 1);
   cry_baby->cry();
 }
 

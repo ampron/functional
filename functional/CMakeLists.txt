@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 
 project(Functional VERSION 0.12.1)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # generate the version header file
 configure_file("src/version.inline.h" "${PROJECT_BINARY_DIR}/version.h")

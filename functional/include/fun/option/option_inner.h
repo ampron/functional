@@ -10,7 +10,7 @@ template <class T, class En = void> class OptionUnion;
 
 //------------------------------------------------------------------------------
 template <class T>
-class OptionUnion<T, std::enable_if_t<std::is_empty<T>::value>>: T {
+class OptionUnion<T, std::enable_if_t<std::is_empty_v<T>>>: T {
   using Self = OptionUnion;
 
   enum class Tag: std::uint8_t { NONE, SOME };

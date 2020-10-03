@@ -282,9 +282,7 @@ template <class T, class E>
 template <typename OkFunc, typename ErrFunc>
 auto Result<T, E>::match(OkFunc func_ok, ErrFunc func_err) && -> MatchReturn<OkFunc> {
   static_assert(
-    std::is_same< typename std::result_of<OkFunc(T)>::type
-                , typename std::result_of<ErrFunc(E)>::type
-                >::value
+    std::is_same_v<std::invoke_result_t<OkFunc, T>, std::invoke_result_t<ErrFunc, E>>
     , "Ok-handling and Err-handling functions passed to match do not "
       "have the same return type"
     );

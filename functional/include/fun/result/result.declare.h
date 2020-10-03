@@ -171,19 +171,19 @@ public:
   auto err() && -> Option<E>;
 
   template <class F>
-  using MatchReturn = ResultOf_t<F(T)>;
+  using MatchReturn = InvokeResult_t<F, T>;
 
   template <typename OkFunc, typename ErrFunc>
   auto match(OkFunc func_ok, ErrFunc func_err) && -> MatchReturn<OkFunc>;
 
   template <class F>
-  using MapReturn = Result<ResultOf_t<F(T)>, E>;
+  using MapReturn = Result<InvokeResult_t<F, T>, E>;
 
   template <typename F>
   auto map(F func) && -> MapReturn<F>;
 
   template <class F>
-  using ErrMapReturn = Result<T, ResultOf_t<F(E)>>;
+  using ErrMapReturn = Result<T, InvokeResult_t<F, E>>;
 
   template <typename F>
   auto map_err(F func) && -> ErrMapReturn<F>;
@@ -192,13 +192,13 @@ public:
   auto zip(Result<U, E>) && -> Result<std::pair<T, U>, E>;
 
   template <class F>
-  using AndThenReturn = Result<typename ResultOf_t<F(T)>::value_t, E>;
+  using AndThenReturn = Result<typename InvokeResult_t<F, T>::value_t, E>;
 
   template <typename F /* T -> Result<U, E> */>
   auto and_then(F func) && -> AndThenReturn<F>;
 
   template <class F>
-  using OrElseReturn = Result<T, typename ResultOf_t<F(E)>::error_t>;
+  using OrElseReturn = Result<T, typename InvokeResult_t<F, E>::error_t>;
 
   template <typename F>
   auto or_else(F alt_func) && -> OrElseReturn<F>;

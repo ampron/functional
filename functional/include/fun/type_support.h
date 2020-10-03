@@ -55,20 +55,20 @@ template <> struct Unvoid<void> { using Output = Unit; };
 template <class T> struct Unvoid { using Output = T; };
 
 //------------------------------------------------------------------------------
-template <class T>
-struct ResultOf {
-  using type = typename Unvoid<typename std::result_of<T>::type>::Output;
+template <class F, class ...Args>
+struct InvokeResult {
+  using type = typename Unvoid<std::invoke_result_t<F, Args...>>::Output;
 };
 
-template <class T>
-using ResultOf_t = typename ResultOf<T>::type;
+template <class F, class ...Args>
+using InvokeResult_t = typename InvokeResult<F, Args...>::type;
 
 //------------------------------------------------------------------------------
 template <bool unvoid, class F, class ...Args> struct UnvoidedFunc;
 
 template <class F, class ...Args>
 struct UnvoidedFunc<true, F, Args...> {
-  using Output = ResultOf_t<F(Args...)>;
+  using Output = InvokeResult_t<F, Args...>;
 
   auto operator()(F f, Args&& ...args) const -> Output {
     f(std::forward<Args>(args)...);
@@ -78,7 +78,7 @@ struct UnvoidedFunc<true, F, Args...> {
 
 template <class F, class ...Args>
 struct UnvoidedFunc<false, F, Args...> {
-  using Output = ResultOf_t<F(Args...)>;
+  using Output = InvokeResult_t<F, Args...>;
 
   auto operator()(F f, Args&& ...args) const -> Output {
     return f(std::forward<Args>(args)...);
@@ -87,7 +87,7 @@ struct UnvoidedFunc<false, F, Args...> {
 
 template <class F, class ...Args>
 struct UnvoidFunc {
-  using Routed = UnvoidedFunc<std::is_void<typename std::result_of<F(Args...)>::type>::value, F, Args...>;
+  using Routed = UnvoidedFunc<std::is_void_v<std::invoke_result_t<F, Args...>>, F, Args...>;
 };
 
 template <class F, class ...Args>

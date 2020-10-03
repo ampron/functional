@@ -72,7 +72,7 @@ class Option {
 public:
   using self_t = Option<T>;
   using Inner = T;
-  using value_t = typename std::remove_reference<T>::type;
+  using value_t = std::remove_reference_t<T>;
 
   class ConstIter;
   class Iter;
@@ -148,7 +148,7 @@ public:
   }
 
   template <class F>
-  using MatchReturn = ResultOf_t<F(T)>;
+  using MatchReturn = InvokeResult_t<F, T>;
 
   //!
   //! The match method take a function for handling either variant and
@@ -169,13 +169,13 @@ public:
   auto ok_or(E err) && -> Result<T, E>;
 
   template <class F>
-  using ErrorAlternative = ResultOf_t<F()>;
+  using ErrorAlternative = InvokeResult_t<F>;
 
   template<typename ErrFuncT>
   auto ok_or_else(ErrFuncT err_func) && -> Result<T, ErrorAlternative<ErrFuncT>>;
 
   template <class F>
-  using MappedOption = Option<ResultOf_t<F(T)>>;
+  using MappedOption = Option<InvokeResult_t<F, T>>;
 
   //!
   //! Map Option<T> to Option<U> by applying the argument `func` (of type
@@ -194,7 +194,7 @@ public:
   auto zip(Option<U>) && -> Option<std::pair<T, U>>;
 
   template <class F>
-  using ValBoundOption = Option<typename ResultOf_t<F(T)>::Inner>;
+  using ValBoundOption = Option<typename InvokeResult_t<F, T>::Inner>;
 
   //!
   //! Returns a "None" variant if the Option object is "None", otherwise

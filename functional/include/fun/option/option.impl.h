@@ -19,7 +19,7 @@ inline auto some() -> Option<Unit> { return some(Unit{}); }
 
 //------------------------------------------------------------------------------
 template<typename T>
-auto some(T x) -> Option<typename std::remove_reference<T>::type> {
+auto some(T x) -> Option<std::remove_reference_t<T>> {
   return Option<T>(std::move(x));
 }
 
@@ -44,9 +44,7 @@ auto Option<T>::
 match(SomeFuncT func_some, NoneFuncT func_none) && -> MatchReturn<SomeFuncT>
 {
   static_assert(
-    std::is_same< typename std::result_of<SomeFuncT(T)>::type
-                , typename std::result_of<NoneFuncT()>::type
-                >::value
+    std::is_same_v<std::invoke_result_t<SomeFuncT, T>, std::invoke_result_t<NoneFuncT>>
     , "Some-handling and None-handling functions passed to match do not "
       "have the same return type"
     );
