@@ -188,6 +188,9 @@ public:
   template <typename F>
   auto map_err(F func) && -> ErrMapReturn<F>;
 
+  template <typename U>
+  auto zip(Result<U, E>) && -> Result<std::pair<T, U>, E>;
+
   template <class F>
   using AndThenReturn = Result<typename ResultOf_t<F(T)>::value_t, E>;
 

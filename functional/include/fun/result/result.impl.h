@@ -310,6 +310,20 @@ auto Result<T, E>::map_err(F func) && -> ErrMapReturn<F> {
 
 //------------------------------------------------------------------------------
 template <class T, class E>
+template <typename U>
+auto Result<T, E>::
+zip(Result<U, E> other) && -> Result<std::pair<T, U>, E> {
+  if (this->is_ok() && other.is_ok()) {
+    return fun::make_ok(std::move(*this).unwrap(), std::move(other).unwrap());
+  } else if (this->is_ok()) {
+    return fun::make_err(std::move(other).unwrap_err());
+  } else {
+    return fun::make_err(std::move(*this).unwrap_err());
+  }
+}
+
+//------------------------------------------------------------------------------
+template <class T, class E>
 template <typename F /* T -> Result<U, E> */>
 auto Result<T, E>::and_then(F func) && -> AndThenReturn<F> {
     if (is_ok()) { return unvoid_call(func, dump_ok()); }
