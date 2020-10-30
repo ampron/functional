@@ -16,11 +16,20 @@
   FUN_TRY_CHECK_DIVERGE(tmp_id, expr);                                         \
   dst_id = std::move(tmp_id).unwrap();
 
+#define FUN_TRY_DISCARDING_IMPL2(unique_id, expr)                              \
+  [[maybe_unused]] FUN_TRY_CHECK_DIVERGE(unused_##unique_id##_fun_try_tmp, expr)
+
+#define FUN_TRY_DISCARDING_IMPL1(unique_id, expr)                              \
+  FUN_TRY_DISCARDING_IMPL2(unique_id, expr)
+
 #define FUN_TRY_DECLARE(dst_id, expr)                                          \
   FUN_TRY_DECLARE_IMPL(dst_id##_fun_try_declare_tmp, dst_id, expr)
 
 #define FUN_TRY_ASSIGN(dst_id, expr)                                           \
   FUN_TRY_ASSIGN_IMPL(dst_id##_fun_try_assign_tmp, dst_id, expr)
+
+#define FUN_TRY_DISCARDING(expr)                                               \
+  FUN_TRY_DISCARDING_IMPL1(__COUNTER__, expr)
 
 namespace fun {
 namespace try_detail {

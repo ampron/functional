@@ -846,6 +846,19 @@ TEST(TryTest, try_assign_option) {
 }
 
 //------------------------------------------------------------------------------
+TEST(TryTest, try_discarding_option) {
+  const auto option_try =
+    [](fun::Option<fun::Unit> opt) -> fun::Option<bool> {
+      FUN_TRY_DISCARDING(opt);
+      FUN_TRY_DISCARDING(opt);
+      return fun::make_some(true);
+    };
+
+  EXPECT_EQ(option_try(fun::make_some()), fun::some(true));
+  EXPECT_EQ(option_try(fun::nothing()), fun::Option<bool>());
+}
+
+//------------------------------------------------------------------------------
 TEST(TryTest, try_declare_result) {
   const auto int_to_float =
     [](fun::Result<int, std::string> res) -> fun::Result<float, std::string> {
@@ -868,6 +881,19 @@ TEST(TryTest, try_assign_result) {
 
   EXPECT_EQ(int_to_float(fun::make_ok(3)), fun::ok<std::string>(3.f));
   EXPECT_EQ(int_to_float(fun::make_err("error")), fun::err<float>(std::string("error")));
+}
+
+//------------------------------------------------------------------------------
+TEST(TryTest, try_discarding_result) {
+  const auto result_try =
+    [](fun::Result<fun::Unit, int> res) -> fun::Result<bool, int> {
+      FUN_TRY_DISCARDING(res);
+      FUN_TRY_DISCARDING(res);
+      return fun::make_ok(true);
+    };
+
+  EXPECT_EQ(result_try(fun::make_ok()), fun::ok<int>(true));
+  EXPECT_EQ(result_try(fun::make_err(42)), fun::err<bool>(42));
 }
 
 //------------------------------------------------------------------------------
