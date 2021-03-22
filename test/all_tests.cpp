@@ -401,6 +401,20 @@ TEST(OptionTest, unvoid) {
 }
 
 //------------------------------------------------------------------------------
+TEST(OptionTest, map_member_fn) {
+  struct Foo {
+    int val;
+    void nothing() const {}
+    int get() const { return val; }
+  };
+
+  const Foo foo {42};
+  auto some_foo = fun::some(foo);
+  ASSERT_EQ(fun::Unit{}, some_foo.as_ref().map(&Foo::nothing).unwrap());
+  ASSERT_EQ(foo.get(), some_foo.as_ref().map(&Foo::get).unwrap());
+}
+
+//------------------------------------------------------------------------------
 TEST(OptionTest, map_or) {
   using std::vector;
 

@@ -71,7 +71,7 @@ struct UnvoidedFunc<true, F, Args...> {
   using Output = InvokeResult_t<F, Args...>;
 
   auto operator()(F f, Args&& ...args) const -> Output {
-    f(std::forward<Args>(args)...);
+    std::invoke(f, std::forward<Args>(args)...);
     return {};
   }
 };
@@ -81,7 +81,7 @@ struct UnvoidedFunc<false, F, Args...> {
   using Output = InvokeResult_t<F, Args...>;
 
   auto operator()(F f, Args&& ...args) const -> Output {
-    return f(std::forward<Args>(args)...);
+    return std::invoke(f, std::forward<Args>(args)...);
   }
 };
 
