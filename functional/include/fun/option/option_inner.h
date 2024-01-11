@@ -1,5 +1,4 @@
-#ifndef OPTION_INNER_H
-#define OPTION_INNER_H
+#pragma once
 
 #include <fun/type_support.h>
 
@@ -224,5 +223,3 @@ public:
 };
 
 }
-
-#endif

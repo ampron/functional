@@ -1,5 +1,4 @@
-#ifndef FUN_RESULT_IMPLEMENTATION_H
-#define FUN_RESULT_IMPLEMENTATION_H
+#pragma once
 
 //!
 //! @author Alex Pronschinske
@@ -352,5 +351,3 @@ std::ostream& operator<<(std::ostream& os, const fun::Result<T, E>& res) {
     }
   );
 }
-
-#endif

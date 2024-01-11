@@ -1,6 +1,3 @@
-#ifndef FUN_RESULT_PRELUDE_H
-#define FUN_RESULT_PRELUDE_H
+#pragma once
 
 #include <fun/result/result.impl.h>
-
-#endif

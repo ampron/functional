@@ -1,5 +1,4 @@
-#ifndef FUN_PIPE_H
-#define FUN_PIPE_H
+#pragma once
 
 #include <utility>
 
@@ -35,5 +34,3 @@ auto bind(F&& f) {
 }
 
 } // end namespace fun
-
-#endif

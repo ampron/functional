@@ -1,5 +1,4 @@
-#ifndef FUN_OPTION_TEMPLATE_DECLARATIONS_H
-#define FUN_OPTION_TEMPLATE_DECLARATIONS_H
+#pragma once
 
 //!
 //! @author Alex Pronschinske
@@ -288,5 +287,3 @@ public:
 
 template <class T>
 std::ostream& operator<<(std::ostream& os, const fun::Option<T>& op);
-
-#endif
