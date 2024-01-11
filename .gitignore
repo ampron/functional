@@ -38,3 +38,7 @@ build*/
 # SublimeEdit files
 *.sublime-project
 *.sublime-workspace
+
+# CLion directories
+.idea/
+cmake-build-*/
