@@ -1,8 +1,5 @@
-#ifndef FUN_VERSION_H
-#define FUN_VERSION_H
+#pragma once
 
 #define FUNCTIONAL_VERSION_MAJOR @Functional_VERSION_MAJOR@
 #define FUNCTIONAL_VERSION_MINOR @Functional_VERSION_MINOR@
 #define FUNCTIONAL_VERSION_PATCH @Functional_VERSION_PATCH@
-
-#endif

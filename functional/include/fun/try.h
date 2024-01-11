@@ -1,5 +1,4 @@
-#ifndef FUN_TRY_MACRO_H
-#define FUN_TRY_MACRO_H
+#pragma once
 
 #include <fun/option.h>
 #include <fun/result.h>
@@ -42,5 +41,3 @@ auto diverge(fun::Result<T, E>&& res) { return fun::err(std::move(res).unwrap_er
 
 } // end namespace try_detail
 } // end namespace fun
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef TYPE_SUPPORT_H
-#define TYPE_SUPPORT_H
+#pragma once
 
 #include <type_traits>
 #include <functional>
@@ -106,5 +105,3 @@ auto construct_at(T* location, Args&&... args) -> T& {
 }
 
 }
-
-#endif

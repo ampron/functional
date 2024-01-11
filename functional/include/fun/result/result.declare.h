@@ -1,5 +1,4 @@
-#ifndef FUN_RESULT_TEMPLATE_DECLARATIONS_H
-#define FUN_RESULT_TEMPLATE_DECLARATIONS_H
+#pragma once
 
 //!
 //! @author Alex Pronschinske
@@ -229,5 +228,3 @@ bool operator!=(const U& a, const fun::Result<T, E>& b) {
 
 template <class T, class E>
 std::ostream& operator<<(std::ostream& os, const fun::Result<T, E>& res);
-
-#endif

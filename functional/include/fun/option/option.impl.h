@@ -1,5 +1,4 @@
-#ifndef FUN_OPTION_IMPLEMENTATION_H
-#define FUN_OPTION_IMPLEMENTATION_H
+#pragma once
 
 //!
 //! @author Alex Pronschinske
@@ -291,5 +290,3 @@ std::ostream& operator<<(std::ostream& os, const fun::Option<T>& op) {
     }
   );
 }
-
-#endif
