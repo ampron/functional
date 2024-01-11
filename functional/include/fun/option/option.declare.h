@@ -2,7 +2,7 @@
 
 //!
 //! @author Alex Pronschinske
-//! @copyright MIT LIcense
+//! @copyright MIT License
 //!
 
 #include <functional>
