@@ -26,11 +26,21 @@ auto ok(T val) -> Result<T, E>;
 
 template <class T>
 auto ok_cref(const T& val) -> MakeOkResult<const T&>;
+
+template <class T>
+auto ok_cref(const T&& val) = delete;
+
 template <class T>
 auto ok_ref(T& val) -> MakeOkResult<T&>;
 
+template <class T>
+auto ok_ref(const T&& val) = delete;
+
 template <class E, class T>
 auto ok_ref(T& val) -> Result<T&, E>;
+
+template <class E, class T>
+auto ok_ref(const T&& val) = delete;
 
 template <class E>
 auto err(E val) -> MakeErrResult<E>;
@@ -40,11 +50,21 @@ auto err(E val) -> Result<T, E>;
 
 template <class E>
 auto err_cref(const E& val) -> MakeErrResult<const E&>;
+
+template <class E>
+auto err_cref(const E&& val) = delete;
+
 template <class E>
 auto err_ref(E& val) -> MakeErrResult<E&>;
 
+template <class E>
+auto err_ref(const E&& val) = delete;
+
 template <class T, class E>
 auto err_ref(E& val) -> Result<T, E&>;
+
+template <class T, class E>
+auto err_ref(const E&& val) = delete;
 
 struct OkTag {};
 struct ErrTag {};
