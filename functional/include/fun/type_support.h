@@ -49,52 +49,22 @@ struct Sized {
 };
 
 //------------------------------------------------------------------------------
-template <class T> struct Unvoid;
-template <> struct Unvoid<void> { using Output = Unit; };
-template <class T> struct Unvoid { using Output = T; };
+template <class T>
+using Unvoid_t = std::conditional_t<std::is_same_v<T, void>, Unit, T>;
 
 //------------------------------------------------------------------------------
 template <class F, class ...Args>
-struct InvokeResult {
-  using type = typename Unvoid<std::invoke_result_t<F, Args...>>::Output;
-};
-
-template <class F, class ...Args>
-using InvokeResult_t = typename InvokeResult<F, Args...>::type;
+using InvokeResult_t = Unvoid_t<std::invoke_result_t<F, Args...>>;
 
 //------------------------------------------------------------------------------
-template <bool unvoid, class F, class ...Args> struct UnvoidedFunc;
-
 template <class F, class ...Args>
-struct UnvoidedFunc<true, F, Args...> {
-  using Output = InvokeResult_t<F, Args...>;
-
-  auto operator()(F f, Args&& ...args) const -> Output {
-    std::invoke(f, std::forward<Args>(args)...);
-    return {};
+auto unvoid_call(F&& f, Args&& ...args) -> InvokeResult_t<F, Args...> {
+  if constexpr (std::is_same_v<std::invoke_result_t<F, Args...>, void>) {
+    std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+    return Unit{};
+  } else {
+    return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
   }
-};
-
-template <class F, class ...Args>
-struct UnvoidedFunc<false, F, Args...> {
-  using Output = InvokeResult_t<F, Args...>;
-
-  auto operator()(F f, Args&& ...args) const -> Output {
-    return std::invoke(f, std::forward<Args>(args)...);
-  }
-};
-
-template <class F, class ...Args>
-struct UnvoidFunc {
-  using Routed = UnvoidedFunc<std::is_void_v<std::invoke_result_t<F, Args...>>, F, Args...>;
-};
-
-template <class F, class ...Args>
-auto unvoid_call( F f, Args&& ...args
-                ) -> typename UnvoidFunc<F, Args...>::Routed::Output
-{
-  const typename UnvoidFunc<F, Args...>::Routed uv;
-  return uv(f, std::forward<Args>(args)...);
 }
 
 //------------------------------------------------------------------------------
