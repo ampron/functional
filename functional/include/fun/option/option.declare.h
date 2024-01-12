@@ -34,6 +34,9 @@ auto some_default() -> Option<T>;
 template <class T>
 auto some_ref(T& x) -> Option<T&>;
 
+template <class T>
+auto some_ref(const T&& x) = delete;
+
 template <typename T, typename E> class Result;
 
 struct SomeTag{};
