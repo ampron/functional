@@ -26,7 +26,7 @@ inline auto nothing() -> NothingTag { return {}; }
 auto some() -> Option<Unit>;
 
 template<typename T>
-auto some(T x) -> Option<std::remove_reference_t<T>>;
+auto some(T x) -> Option<T>;
 
 template <class T>
 auto some_default() -> Option<T>;
@@ -104,7 +104,7 @@ public:
 
   Option(NothingTag) : Option() {}
 
-  explicit Option(T x) : _inner(std::move(x)) {}
+  explicit Option(T x) : _inner(std::forward<T>(x)) {}
 
   template <typename ...Args>
   explicit Option(ForwardArgs, Args&& ... args)
@@ -157,7 +157,7 @@ public:
   //! dispatches the appropriate function and returns the common type.
   //!
   template <typename SomeFuncT, typename NoneFuncT>
-  auto match(SomeFuncT, NoneFuncT) && -> MatchReturn<SomeFuncT>;
+  auto match(SomeFuncT&&, NoneFuncT&&) && -> MatchReturn<SomeFuncT>;
 
   // Iterator creation
   Iter begin();
@@ -174,7 +174,7 @@ public:
   using ErrorAlternative = InvokeResult_t<F>;
 
   template<typename ErrFuncT>
-  auto ok_or_else(ErrFuncT err_func) && -> Result<T, ErrorAlternative<ErrFuncT>>;
+  auto ok_or_else(ErrFuncT&& err_func) && -> Result<T, ErrorAlternative<ErrFuncT>>;
 
   template <class F>
   using MappedOption = Option<InvokeResult_t<F, T>>;
@@ -184,13 +184,13 @@ public:
   //! U func(T) or T -> U) to the contained data if there is some.
   //!
   template <typename F /* T -> U */>
-  auto map(F func) && -> MappedOption<F>;
+  auto map(F&& func) && -> MappedOption<F>;
 
   template <typename U, typename FuncT>
-  U map_or(U default_val, FuncT func) &&;
+  U map_or(U default_val, FuncT&& func) &&;
 
   template <typename DefaultFunc, typename F>
-  auto map_or_else(DefaultFunc, F) && -> MappedOption<F>;
+  auto map_or_else(DefaultFunc&&, F&&) && -> MappedOption<F>;
 
   template <typename U>
   auto zip(Option<U>) && -> Option<std::pair<T, U>>;
@@ -204,18 +204,19 @@ public:
   //! returns an Option<U> with the result.
   //!
   template <typename F /* T -> Option<U> */>
-  auto and_then(F func) && -> ValBoundOption<F>;
+  auto and_then(F&& func) && -> ValBoundOption<F>;
 
   template <typename F /* () -> Option<T> */>
-  Option<T> or_else(F alt_func) &&;
+  Option<T> or_else(F&& alt_func) &&;
 
   template <class F /* const T& -> bool */>
   auto filter(F&& predicate) && -> Option<T>
   {
     return std::move(*this).and_then(
-      [&](auto&& obj) -> Option<T> {
-        if (predicate(obj)) { return fun::Option<T>(std::forward<decltype(obj)>(obj)); }
-        else                { return {}; }
+      [&](T&& obj) -> Option<T> {
+        const auto satisfied = std::invoke(std::forward<F>(predicate), std::as_const(obj));
+        if (satisfied) { return Option<T>(ForwardArgs{}, std::forward<T>(obj)); }
+        else           { return {}; }
       }
     );
   }
@@ -247,7 +248,7 @@ public:
   T unwrap_or(T alt) &&;
 
   template <class F>
-  T unwrap_or_else(F alt_func) &&;
+  T unwrap_or_else(F&& alt_func) &&;
 
   auto unwrap_or_default() && -> T {
     return std::move(*this).unwrap_or_else([]() -> T { return {}; });

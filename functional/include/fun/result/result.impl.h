@@ -15,13 +15,13 @@ namespace fun {
 //------------------------------------------------------------------------------
 template <class T>
 auto ok(T val) -> MakeOkResult<T> {
-  return { std::move(val) };
+  return { std::forward<T>(val) };
 }
 
 //------------------------------------------------------------------------------
 template <class E, class T>
 auto ok(T val) -> Result<T, E> {
-  return { OkTag{}, ForwardArgs{}, std::move(val) };
+  return { OkTag{}, ForwardArgs{}, std::forward<T>(val) };
 }
 
 //------------------------------------------------------------------------------
@@ -45,13 +45,13 @@ auto ok_ref(T& val) -> Result<T&, E> {
 //------------------------------------------------------------------------------
 template <class E>
 auto err(E val) -> MakeErrResult<E> {
-  return { std::move(val) };
+  return { std::forward<E>(val) };
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 auto err(E val) -> Result<T, E> {
-  return { ErrTag{}, ForwardArgs{}, std::move(val) };
+  return { ErrTag{}, ForwardArgs{}, std::forward<E>(val) };
 }
 
 //------------------------------------------------------------------------------
@@ -170,13 +170,13 @@ Result<T, E>::Result(ErrTag, ForwardArgs, Args&& ...args)
 //------------------------------------------------------------------------------
 template <class T, class E>
 Result<T, E>::Result(MakeOkResult<T> ok)
-  : Result(OkTag{}, ForwardArgs{}, std::move(ok.val))
+  : Result(OkTag{}, ForwardArgs{}, std::forward<T>(ok.val))
 {}
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 Result<T, E>::Result(MakeErrResult<E> err)
-  : Result(ErrTag{}, ForwardArgs{}, std::move(err.val))
+  : Result(ErrTag{}, ForwardArgs{}, std::forward<E>(err.val))
 {}
 
 //------------------------------------------------------------------------------
@@ -225,16 +225,16 @@ auto Result<T, E>::unwrap() && -> T { return dump_ok(); }
 template <class T, class E>
 auto Result<T, E>::unwrap_or(T alt) && -> T {
   if (is_ok()) { return dump_ok(); }
-  else         { return std::move(alt); }
+  else         { return std::forward<T>(alt); }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <class F>
-auto Result<T, E>::unwrap_or_else(F alt_func) && -> T {
+auto Result<T, E>::unwrap_or_else(F&& alt_func) && -> T {
   return std::move(*this).match(
-    [](T&& x) { return std::move(x); },
-    [&](E&& err) { return alt_func(std::move(err)); }
+    [](T&& x) -> T { return std::forward<T>(x); },
+    [&](E&& err) -> T { return unvoid_call(std::forward<F>(alt_func), std::forward<E>(err)); }
   );
 }
 
@@ -279,29 +279,29 @@ auto Result<T, E>::err() && -> Option<E> {
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename OkFunc, typename ErrFunc>
-auto Result<T, E>::match(OkFunc func_ok, ErrFunc func_err) && -> MatchReturn<OkFunc> {
+auto Result<T, E>::match(OkFunc&& func_ok, ErrFunc&& func_err) && -> MatchReturn<OkFunc> {
   static_assert(
     std::is_same_v<std::invoke_result_t<OkFunc, T>, std::invoke_result_t<ErrFunc, E>>
     , "Ok-handling and Err-handling functions passed to match do not "
       "have the same return type"
     );
-  return is_ok() ? unvoid_call(func_ok, dump_ok())
-                 : unvoid_call(func_err, dump_err());
+  if (is_ok()) { return unvoid_call(std::forward<OkFunc>(func_ok), dump_ok()); }
+  else         { return unvoid_call(std::forward<ErrFunc>(func_err), dump_err()); }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F>
-auto Result<T, E>::map(F func) && -> MapReturn<F> {
-  if (is_ok()) { return { OkTag{}, ForwardArgs{}, unvoid_call(func, dump_ok()) }; }
+auto Result<T, E>::map(F&& func) && -> MapReturn<F> {
+  if (is_ok()) { return { OkTag{}, ForwardArgs{}, unvoid_call(std::forward<F>(func), dump_ok()) }; }
   else         { return { ErrTag{}, ForwardArgs{}, dump_err() }; }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F>
-auto Result<T, E>::map_err(F func) && -> ErrMapReturn<F> {
-  if (is_err()) { return { ErrTag{}, ForwardArgs{}, unvoid_call(func, dump_err()) }; }
+auto Result<T, E>::map_err(F&& func) && -> ErrMapReturn<F> {
+  if (is_err()) { return { ErrTag{}, ForwardArgs{}, unvoid_call(std::forward<F>(func), dump_err()) }; }
   else          { return { OkTag{}, ForwardArgs{}, dump_ok() }; }
 }
 
@@ -322,17 +322,17 @@ zip(Result<U, E> other) && -> Result<std::pair<T, U>, E> {
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F /* T -> Result<U, E> */>
-auto Result<T, E>::and_then(F func) && -> AndThenReturn<F> {
-    if (is_ok()) { return unvoid_call(func, dump_ok()); }
+auto Result<T, E>::and_then(F&& func) && -> AndThenReturn<F> {
+    if (is_ok()) { return unvoid_call(std::forward<F>(func), dump_ok()); }
     else         { return { ErrTag{}, ForwardArgs{}, dump_err() }; }
 }
 
 //------------------------------------------------------------------------------
 template <class T, class E>
 template <typename F>
-auto Result<T, E>::or_else(F alt_func) && -> OrElseReturn<F> {
+auto Result<T, E>::or_else(F&& alt_func) && -> OrElseReturn<F> {
   if (is_ok()) { return { OkTag{}, ForwardArgs{}, dump_ok() }; }
-    else         { return unvoid_call(alt_func, dump_err()); }
+    else       { return unvoid_call(std::forward<F>(alt_func), dump_err()); }
 }
 
 }
