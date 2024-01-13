@@ -24,7 +24,7 @@ auto some(T x) -> Option<T> {
 
 //------------------------------------------------------------------------------
 template <class T>
-auto some_default() -> Option<T> { return { Option<T>(ForwardArgs{}) }; }
+auto some_default() -> Option<T> { return Option<T>(ForwardArgs{}); }
 
 //------------------------------------------------------------------------------
 template <class T>
