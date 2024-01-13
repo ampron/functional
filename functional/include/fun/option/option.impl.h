@@ -18,8 +18,8 @@ inline auto some() -> Option<Unit> { return some(Unit{}); }
 
 //------------------------------------------------------------------------------
 template<typename T>
-auto some(T x) -> Option<std::remove_reference_t<T>> {
-  return Option<T>(std::move(x));
+auto some(T x) -> Option<T> {
+  return Option<T>(ForwardArgs{}, std::forward<T>(x));
 }
 
 //------------------------------------------------------------------------------
@@ -40,15 +40,15 @@ auto some_ref(T& x) -> Option<T&> { return Option<T&>(OptionUnion<T&>(x)); }
 template<typename T>
 template <typename SomeFuncT, typename NoneFuncT>
 auto Option<T>::
-match(SomeFuncT func_some, NoneFuncT func_none) && -> MatchReturn<SomeFuncT>
+match(SomeFuncT&& func_some, NoneFuncT&& func_none) && -> MatchReturn<SomeFuncT>
 {
   static_assert(
     std::is_same_v<std::invoke_result_t<SomeFuncT, T>, std::invoke_result_t<NoneFuncT>>
     , "Some-handling and None-handling functions passed to match do not "
       "have the same return type"
     );
-  return is_some() ? unvoid_call(func_some, std::move(*this).unwrap())
-                   : unvoid_call(func_none);
+  if (is_some()) { return unvoid_call(std::forward<SomeFuncT>(func_some), std::move(*this).unwrap()); }
+  else           { return unvoid_call(std::forward<NoneFuncT>(func_none)); }
 }
 
 //------------------------------------------------------------------------------
@@ -81,16 +81,16 @@ template <typename E, typename ... Args>
 auto Option<T>::ok_or(E err) && -> Result<T, E>
 {
   if (is_some()) { return fun::make_ok(std::move(*this).unwrap()); }
-  else           { return fun::err(std::move(err)); }
+  else           { return fun::make_err(std::forward<E>(err)); }
 }
 
 //------------------------------------------------------------------------------
 template <typename T>
 template<typename ErrFuncT>
-auto Option<T>::ok_or_else(ErrFuncT err_func) && -> Result<T, ErrorAlternative<ErrFuncT>>
+auto Option<T>::ok_or_else(ErrFuncT&& err_func) && -> Result<T, ErrorAlternative<ErrFuncT>>
 {
   if (is_some()) { return fun::make_ok(std::move(*this).unwrap()); }
-  else           { return fun::make_err(unvoid_call(err_func)); }
+  else           { return fun::make_err(unvoid_call(std::forward<ErrFuncT>(err_func))); }
 }
 
 //------------------------------------------------------------------------------
@@ -100,27 +100,29 @@ auto Option<T>::ok_or_else(ErrFuncT err_func) && -> Result<T, ErrorAlternative<E
 //!
 template<typename T>
 template <typename F /* T -> U */>
-auto Option<T>::map(F func) && -> MappedOption<F>
+auto Option<T>::map(F&& func) && -> MappedOption<F>
 {
-  if (is_some()) { return fun::make_some(unvoid_call(func, std::move(*this).unwrap())); }
+  if (is_some()) { return fun::make_some(unvoid_call(std::forward<F>(func), std::move(*this).unwrap())); }
   else { return {}; }
 }
 
 //------------------------------------------------------------------------------
 template<typename T>
 template <typename U, typename FuncT>
-U Option<T>::map_or(U default_val, FuncT func) &&
+U Option<T>::map_or(U default_val, FuncT&& func) &&
 {
-  return is_some() ? unvoid_call(func, std::move(*this).unwrap()) : std::move(default_val);
+  if (is_some()) { return unvoid_call(std::forward<FuncT>(func), std::move(*this).unwrap()); }
+  else           { return std::forward<U>(default_val); }
 }
 
 //------------------------------------------------------------------------------
 template <typename T>
 template <typename DefaultFunc, typename F>
 auto Option<T>::
-map_or_else(DefaultFunc default_func, F func) && -> MappedOption<F>
+map_or_else(DefaultFunc&& default_func, F&& func) && -> MappedOption<F>
 {
-  return is_some() ? unvoid_call(func, std::move(*this).unwrap()) : unvoid_call(default_func);
+  if (is_some()) { return unvoid_call(std::forward<F>(func), std::move(*this).unwrap()); }
+  else           { return unvoid_call(std::forward<DefaultFunc>(default_func)); }
 }
 
 //------------------------------------------------------------------------------
@@ -144,30 +146,32 @@ zip(Option<U> other) && -> Option<std::pair<T, U>>
 //!
 template<typename T>
 template <typename F /* T -> Option<U> */>
-auto Option<T>::and_then(F func) && -> ValBoundOption<F>
+auto Option<T>::and_then(F&& func) && -> ValBoundOption<F>
 {
-  if (is_some()) { return unvoid_call(func, std::move(*this).unwrap()); }
+  if (is_some()) { return unvoid_call(std::forward<F>(func), std::move(*this).unwrap()); }
   else           { return {}; }
 }
 
 //------------------------------------------------------------------------------
 template<typename T>
 template <typename F /* () -> Option<T> */>
-Option<T> Option<T>::or_else(F alt_func) &&
+Option<T> Option<T>::or_else(F&& alt_func) &&
 {
-  return is_some() ? fun::make_some(std::move(*this).unwrap()) : unvoid_call(alt_func);
+  if (is_some()) { return fun::make_some(std::move(*this).unwrap()); }
+  else           { return unvoid_call(std::forward<F>(alt_func)); }
 }
 
 //------------------------------------------------------------------------------
 template<typename T>
 Option<T> Option<T>::take()
 {
-  return is_some() ? Option<T>(ForwardArgs(), _inner.dump()) : Option<T>();
+  if (is_some()) { return Option<T>(ForwardArgs(), _inner.dump()); }
+  else           { return Option<T>(); }
 }
 
 //------------------------------------------------------------------------------
 template<typename T>
-Option<T>& Option<T>::push(T obj) { return emplace(std::move(obj)); }
+Option<T>& Option<T>::push(T obj) { return emplace(std::forward<T>(obj)); }
 
 //------------------------------------------------------------------------------
 template <typename T>
@@ -201,15 +205,17 @@ T Option<T>::expect(const char* err_msg) &&
 template<typename T>
 T Option<T>::unwrap_or(T alt) &&
 {
-  return is_some() ? std::move(*this).unwrap() : std::move(alt);
+  if (is_some()) { return std::move(*this).unwrap(); }
+  else           { return std::forward<T>(alt); }
 }
 
 //------------------------------------------------------------------------------
 template <class T>
 template <class F>
-T Option<T>::unwrap_or_else(F alt_func) &&
+T Option<T>::unwrap_or_else(F&& alt_func) &&
 {
-  return is_some() ? std::move(*this).unwrap() : unvoid_call(alt_func);
+  if (is_some()) { return std::move(*this).unwrap(); }
+  else           { return unvoid_call(std::forward<F>(alt_func)); };
 }
 
 //------------------------------------------------------------------------------

@@ -172,7 +172,7 @@ public:
   auto unwrap_or(T alt) && -> T;
 
   template <class F>
-  auto unwrap_or_else(F alt_func) && -> T;
+  auto unwrap_or_else(F&& alt_func) && -> T;
 
   auto unwrap_or_default() && -> T {
     return std::move(*this).unwrap_or_else([](auto&&) -> T { return {}; });
@@ -193,19 +193,19 @@ public:
   using MatchReturn = InvokeResult_t<F, T>;
 
   template <typename OkFunc, typename ErrFunc>
-  auto match(OkFunc func_ok, ErrFunc func_err) && -> MatchReturn<OkFunc>;
+  auto match(OkFunc&& func_ok, ErrFunc&& func_err) && -> MatchReturn<OkFunc>;
 
   template <class F>
   using MapReturn = Result<InvokeResult_t<F, T>, E>;
 
   template <typename F>
-  auto map(F func) && -> MapReturn<F>;
+  auto map(F&& func) && -> MapReturn<F>;
 
   template <class F>
   using ErrMapReturn = Result<T, InvokeResult_t<F, E>>;
 
   template <typename F>
-  auto map_err(F func) && -> ErrMapReturn<F>;
+  auto map_err(F&& func) && -> ErrMapReturn<F>;
 
   template <typename U>
   auto zip(Result<U, E>) && -> Result<std::pair<T, U>, E>;
@@ -214,13 +214,13 @@ public:
   using AndThenReturn = Result<typename InvokeResult_t<F, T>::value_t, E>;
 
   template <typename F /* T -> Result<U, E> */>
-  auto and_then(F func) && -> AndThenReturn<F>;
+  auto and_then(F&& func) && -> AndThenReturn<F>;
 
   template <class F>
   using OrElseReturn = Result<T, typename InvokeResult_t<F, E>::error_t>;
 
   template <typename F>
-  auto or_else(F alt_func) && -> OrElseReturn<F>;
+  auto or_else(F&& alt_func) && -> OrElseReturn<F>;
 };
 
 template <class T>
