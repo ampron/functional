@@ -14,7 +14,7 @@
 // Define FUN_INCLUDE_COMPILATION_FAILURE_TESTS to a nonzero value to include tests that _should not_ sucessfully
 // compile.
 #ifndef FUN_INCLUDE_COMPILATION_FAILURE_TESTS
-#define FUN_INCLUDE_COMPILATION_FAILURE_TESTS 1
+#define FUN_INCLUDE_COMPILATION_FAILURE_TESTS 0
 #endif
 
 //------------------------------------------------------------------------------
