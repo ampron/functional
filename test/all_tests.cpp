@@ -11,6 +11,12 @@
 
 #include "testing.h"
 
+// Define FUN_INCLUDE_COMPILATION_FAILURE_TESTS to a nonzero value to include tests that _should not_ sucessfully
+// compile.
+#ifndef FUN_INCLUDE_COMPILATION_FAILURE_TESTS
+#define FUN_INCLUDE_COMPILATION_FAILURE_TESTS 1
+#endif
+
 //------------------------------------------------------------------------------
 class Monolith {
 private:
@@ -207,6 +213,12 @@ TEST(OptionTest, some_ref_function) {
     const auto x = 3;
     const auto op = fun::some_ref(x);
     ASSERT_TRUE(op.is_some());
+
+#if FUN_INCLUDE_COMPILATION_FAILURE_TESTS
+    // some_ref should not be callable on rvalues
+    fun::some_ref<int const>(5);
+    fun::some_ref(std::move(x));
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -506,12 +518,49 @@ TEST(OptionTest, iteration) {
 TEST(OptionTest, unwrap_or) {
   const auto x = fun::some(2).unwrap_or(0);
   ASSERT_TRUE(x == 2);
+
+  const auto y = 3;
+  const auto z = 5;
+  EXPECT_EQ(&y, &fun::some_ref(y).unwrap_or(z));
+  EXPECT_EQ(&z, &fun::Option<const int&>().unwrap_or(z));
+
+#if FUN_INCLUDE_COMPILATION_FAILURE_TESTS
+  // unwrap_or with an rvalue should only be allowed for non-reference T
+  fun::some_ref(y).unwrap_or(7);
+
+  // unwrap_or with an lvalue should not be allowed if converting the default value would produce a temporary
+  const auto w = 5l;
+  fun::some_ref(y).unwrap_or(w);
+#endif
+}
+
+//------------------------------------------------------------------------------
+TEST(OptionTest, unwrap_or_else) {
+  const auto x = fun::some(2).unwrap_or_else([] { return 0; });
+  ASSERT_TRUE(x == 2);
+
+  const auto y = 3;
+  const auto z = 5;
+  ASSERT_EQ(&y, &fun::some_ref(y).unwrap_or_else([&]() -> auto& { return z; }));
+  ASSERT_EQ(&z, &fun::Option<const int&>().unwrap_or_else([&]() -> auto& { return z; }));
+
+#if FUN_INCLUDE_COMPILATION_FAILURE_TESTS
+  // unwrap_or_else should only be allowed if the callback produces a _reference_ of compatible type
+  fun::some_ref(y).unwrap_or_else([] { return 7; }); // Callback produces _value_
+  fun::some_ref(y).unwrap_or_else([]() -> long& { std::terminate(); }); // Callback produces incompatible reference
+#endif
 }
 
 //------------------------------------------------------------------------------
 TEST(OptionTest, unwrap_or_default) {
   auto empty_str = fun::Option<std::string>().unwrap_or_default();
   ASSERT_TRUE(empty_str.empty());
+
+#if FUN_INCLUDE_COMPILATION_FAILURE_TESTS
+  // unwrap_or_default should only be allowed for non-reference T
+  const auto x = 7;
+  fun::some_ref(x).unwrap_or_default();
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -630,6 +679,16 @@ TEST(ResultTest, construction) {
   ASSERT_EQ(xs_ref.clone().unwrap().size(), xs.size());
   const auto xs_err_ref = fun::err_ref<std::string>(xs);
   ASSERT_EQ(xs_err_ref.clone().unwrap_err().size(), xs.size());
+
+#if FUN_INCLUDE_COMPILATION_FAILURE_TESTS
+  // These factory functions should not be callable on temporaries
+  fun::ok_cref(5);
+  fun::ok_ref<const int>(5);
+  fun::ok_ref(static_cast<const int&&>(7));
+  fun::err_cref(5);
+  fun::err_ref<const int>(5);
+  fun::err_ref(static_cast<const int&&>(7));
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -642,6 +701,11 @@ TEST(ResultTest, unwrap) {
 TEST(ResultTest, unwrap_or_default) {
   auto empty_str = fun::err<std::string>(0).unwrap_or_default();
   ASSERT_TRUE(empty_str.empty());
+
+#if FUN_INCLUDE_COMPILATION_FAILURE_TESTS
+  // unwrap_or_default should not be allowed when T is a reference type
+  fun::err<int const&, int>(0).unwrap_or_default();
+#endif
 }
 
 //------------------------------------------------------------------------------
