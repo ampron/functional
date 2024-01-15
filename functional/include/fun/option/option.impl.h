@@ -203,10 +203,16 @@ T Option<T>::expect(const char* err_msg) &&
 
 //------------------------------------------------------------------------------
 template<typename T>
-T Option<T>::unwrap_or(T alt) &&
+template<typename Arg>
+T Option<T>::unwrap_or(Arg&& alt) &&
 {
+  static_assert(
+    !std::is_reference_v<T> || is_safe_reference_convertible_v<Arg, T>,
+    "Option<T&>::unwrap_or requires an argument of a compatible reference type"
+  );
+
   if (is_some()) { return std::move(*this).unwrap(); }
-  else           { return std::forward<T>(alt); }
+  else           { return std::forward<Arg>(alt); }
 }
 
 //------------------------------------------------------------------------------
@@ -214,6 +220,11 @@ template <class T>
 template <class F>
 T Option<T>::unwrap_or_else(F&& alt_func) &&
 {
+  static_assert(
+    !std::is_reference_v<T> || is_safe_reference_convertible_v<InvokeResult_t<F>, T>,
+    "The callback passed to Option<T&>::unwrap_or_else must return a compatible reference"
+  );
+
   if (is_some()) { return std::move(*this).unwrap(); }
   else           { return unvoid_call(std::forward<F>(alt_func)); };
 }

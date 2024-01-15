@@ -57,6 +57,13 @@ template <class F, class ...Args>
 using InvokeResult_t = Unvoid_t<std::invoke_result_t<F, Args...>>;
 
 //------------------------------------------------------------------------------
+template <class From, class To>
+constexpr bool is_safe_reference_convertible_v =
+  std::is_reference_v<From> &&
+  std::is_reference_v<To> &&
+  std::is_convertible_v<std::remove_reference_t<From>*, std::remove_reference_t<To>*>;
+
+//------------------------------------------------------------------------------
 template <class F, class ...Args>
 auto unvoid_call(F&& f, Args&& ...args) -> InvokeResult_t<F, Args...> {
   if constexpr (std::is_same_v<std::invoke_result_t<F, Args...>, void>) {

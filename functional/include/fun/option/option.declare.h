@@ -245,12 +245,19 @@ public:
 
   T expect(const char* err_msg) &&;
 
-  T unwrap_or(T alt) &&;
+  template <class Arg>
+  T unwrap_or(Arg&& alt) &&;
 
   template <class F>
   T unwrap_or_else(F&& alt_func) &&;
 
+  template <class X = void> // Dummy template parameter to defer static_assert
   auto unwrap_or_default() && -> T {
+    static_assert(
+      !std::is_reference_v<std::conditional_t<true, T, X>>,
+      "Option::unwrap_or_default is disallowed for references"
+    );
+
     return std::move(*this).unwrap_or_else([]() -> T { return {}; });
   }
 

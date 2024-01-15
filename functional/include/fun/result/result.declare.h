@@ -174,7 +174,13 @@ public:
   template <class F>
   auto unwrap_or_else(F&& alt_func) && -> T;
 
+  template <class X = void> // Dummy template parameter to defer static_assert
   auto unwrap_or_default() && -> T {
+    static_assert(
+      !std::is_reference_v<std::conditional_t<true, T, X>>,
+      "Result::unwrap_or_default is disallowed for references"
+    );
+
     return std::move(*this).unwrap_or_else([](auto&&) -> T { return {}; });
   }
 
