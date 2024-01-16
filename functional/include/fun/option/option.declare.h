@@ -25,8 +25,8 @@ inline auto nothing() -> NothingTag { return {}; }
 
 auto some() -> Option<Unit>;
 
-template<typename T>
-auto some(T x) -> Option<T>;
+template<typename Arg>
+auto some(Arg&& x) -> Option<std::decay_t<Arg>>;
 
 template <class T>
 auto some_default() -> Option<T>;
@@ -245,8 +245,24 @@ public:
 
   T expect(const char* err_msg) &&;
 
+  // Non-reference overload
+  template <class X = void> // Dummy template argument for SFINAE
+  auto unwrap_or(T alt) && -> /* T */ std::enable_if_t<!std::is_reference_v<T>, first_t<T, X>> {
+    if (is_some()) { return std::move(*this).unwrap(); }
+    else           { return std::move(alt); }
+  }
+
+  // Reference overload
   template <class Arg>
-  T unwrap_or(Arg&& alt) &&;
+  auto unwrap_or(Arg&& alt) && -> /* T */ std::enable_if_t<std::is_reference_v<T>, first_t<T, Arg>> {
+    static_assert(
+      !std::is_reference_v<T> || is_safe_reference_convertible_v<Arg, T>,
+      "Option<T&>::unwrap_or requires an argument of a compatible reference type"
+    );
+
+    if (is_some()) { return std::move(*this).unwrap(); }
+    else           { return std::forward<Arg>(alt); }
+  }
 
   template <class F>
   T unwrap_or_else(F&& alt_func) &&;
@@ -254,7 +270,7 @@ public:
   template <class X = void> // Dummy template parameter to defer static_assert
   auto unwrap_or_default() && -> T {
     static_assert(
-      !std::is_reference_v<std::conditional_t<true, T, X>>,
+      !std::is_reference_v<first_t<T, X>>,
       "Option::unwrap_or_default is disallowed for references"
     );
 

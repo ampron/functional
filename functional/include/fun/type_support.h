@@ -57,11 +57,24 @@ template <class F, class ...Args>
 using InvokeResult_t = Unvoid_t<std::invoke_result_t<F, Args...>>;
 
 //------------------------------------------------------------------------------
+/**
+ * Tests whether `From` and `To` are lvalue reference types _and_ that a conversion from `From` to `To` will result in
+ * trivial "direct binding" (i.e. simple pointer coercion, without any temporary materialization or user-defined
+ * conversions).
+ */
 template <class From, class To>
 constexpr bool is_safe_reference_convertible_v =
-  std::is_reference_v<From> &&
-  std::is_reference_v<To> &&
+  std::is_lvalue_reference_v<From> &&
+  std::is_lvalue_reference_v<To> &&
   std::is_convertible_v<std::remove_reference_t<From>*, std::remove_reference_t<To>*>;
+
+//------------------------------------------------------------------------------
+/**
+ * An alias template that evaluates to its first type argument, and ignores the second. This is useful to establish a
+ * "false dependency" on another type variable in order to force the compiler to defer its analysis of a signature.
+ */
+template <class T, class U>
+using first_t = std::conditional_t<true, T, U>;
 
 //------------------------------------------------------------------------------
 template <class F, class ...Args>

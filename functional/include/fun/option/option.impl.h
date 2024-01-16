@@ -17,9 +17,9 @@ namespace fun {
 inline auto some() -> Option<Unit> { return some(Unit{}); }
 
 //------------------------------------------------------------------------------
-template<typename T>
-auto some(T x) -> Option<T> {
-  return Option<T>(ForwardArgs{}, std::forward<T>(x));
+template<typename Arg>
+auto some(Arg&& x) -> Option<std::decay_t<Arg>> {
+  return Option<std::decay_t<Arg>>(ForwardArgs{}, std::forward<Arg>(x));
 }
 
 //------------------------------------------------------------------------------
@@ -199,20 +199,6 @@ T Option<T>::expect(const char* err_msg) &&
 {
   if (is_some()) { return std::move(*this).unwrap(); }
   else           { throw std::runtime_error(err_msg); }
-}
-
-//------------------------------------------------------------------------------
-template<typename T>
-template<typename Arg>
-T Option<T>::unwrap_or(Arg&& alt) &&
-{
-  static_assert(
-    !std::is_reference_v<T> || is_safe_reference_convertible_v<Arg, T>,
-    "Option<T&>::unwrap_or requires an argument of a compatible reference type"
-  );
-
-  if (is_some()) { return std::move(*this).unwrap(); }
-  else           { return std::forward<Arg>(alt); }
 }
 
 //------------------------------------------------------------------------------

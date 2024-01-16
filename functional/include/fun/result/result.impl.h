@@ -13,15 +13,15 @@ namespace fun {
 //==============================================================================
 // Result-releated function definitions
 //------------------------------------------------------------------------------
-template <class T>
-auto ok(T val) -> MakeOkResult<T> {
-  return { std::forward<T>(val) };
+template <class Arg>
+auto ok(Arg&& val) -> MakeOkResult<std::decay_t<Arg>> {
+  return { std::forward<Arg>(val) };
 }
 
 //------------------------------------------------------------------------------
-template <class E, class T>
-auto ok(T val) -> Result<T, E> {
-  return { OkTag{}, ForwardArgs{}, std::forward<T>(val) };
+template <class E, class Arg>
+auto ok(Arg&& val) -> Result<std::decay_t<Arg>, E> {
+  return { OkTag{}, ForwardArgs{}, std::forward<Arg>(val) };
 }
 
 //------------------------------------------------------------------------------
@@ -43,15 +43,15 @@ auto ok_ref(T& val) -> Result<T&, E> {
 }
 
 //------------------------------------------------------------------------------
-template <class E>
-auto err(E val) -> MakeErrResult<E> {
-  return { std::forward<E>(val) };
+template <class Arg>
+auto err(Arg&& val) -> MakeErrResult<std::decay_t<Arg>> {
+  return { std::forward<Arg>(val) };
 }
 
 //------------------------------------------------------------------------------
-template <class T, class E>
-auto err(E val) -> Result<T, E> {
-  return { ErrTag{}, ForwardArgs{}, std::forward<E>(val) };
+template <class T, class Arg>
+auto err(Arg&& val) -> Result<T, std::decay_t<Arg>> {
+  return { ErrTag{}, ForwardArgs{}, std::forward<Arg>(val) };
 }
 
 //------------------------------------------------------------------------------

@@ -18,11 +18,11 @@ template <class T, class E> class Result;
 template <class T> struct MakeOkResult{ T val; };
 template <class E> struct MakeErrResult{ E val; };
 
-template <class T>
-auto ok(T val) -> MakeOkResult<T>;
+template <class Arg>
+auto ok(Arg&& val) -> MakeOkResult<std::decay_t<Arg>>;
 
-template <class E, class T>
-auto ok(T val) -> Result<T, E>;
+template <class E, class Arg>
+auto ok(Arg&& val) -> Result<std::decay_t<Arg>, E>;
 
 template <class T>
 auto ok_cref(const T& val) -> MakeOkResult<const T&>;
@@ -42,11 +42,11 @@ auto ok_ref(T& val) -> Result<T&, E>;
 template <class E, class T>
 auto ok_ref(const T&& val) = delete;
 
-template <class E>
-auto err(E val) -> MakeErrResult<E>;
+template <class Arg>
+auto err(Arg&& val) -> MakeErrResult<std::decay_t<Arg>>;
 
-template <class T, class E>
-auto err(E val) -> Result<T, E>;
+template <class T, class Arg>
+auto err(Arg&& val) -> Result<T, std::decay_t<Arg>>;
 
 template <class E>
 auto err_cref(const E& val) -> MakeErrResult<const E&>;
@@ -177,7 +177,7 @@ public:
   template <class X = void> // Dummy template parameter to defer static_assert
   auto unwrap_or_default() && -> T {
     static_assert(
-      !std::is_reference_v<std::conditional_t<true, T, X>>,
+      !std::is_reference_v<first_t<T, X>>,
       "Result::unwrap_or_default is disallowed for references"
     );
 
